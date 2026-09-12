@@ -1,0 +1,17 @@
+{
+  "name": "Mess Ledger",
+  "short_name": "MessLedger",
+  "description": "Mess management — meals, bazar, accounts",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F4F1E9",
+  "theme_color": "#1F6B4F",
+  "icons": [{
+    "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='104' fill='%231F6B4F'/%3E%3Ccircle cx='256' cy='292' r='118' fill='none' stroke='%23F6F2E7' stroke-width='30'/%3E%3Ccircle cx='256' cy='292' r='62' fill='%23F6F2E7'/%3E%3Cg stroke='%23F6F2E7' stroke-width='22' stroke-linecap='round' fill='none'%3E%3Cpath d='M186 118c0-26 26-26 26-52'/%3E%3Cpath d='M256 104c0-26 26-26 26-52'/%3E%3Cpath d='M326 118c0-26 26-26 26-52'/%3E%3C/g%3E%3C/svg%3E",
+    "sizes": "512x512",
+    "type": "image/svg+xml",
+    "purpose": "any maskable"
+  }]
+}

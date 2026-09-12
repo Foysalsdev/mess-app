@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mess Ledger</title>
+<meta name="description" content="Mess management system">
+<meta name="theme-color" content="#1F6B4F" id="metaTheme">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='104' fill='%231F6B4F'/%3E%3Ccircle cx='256' cy='292' r='118' fill='none' stroke='%23F6F2E7' stroke-width='30'/%3E%3Ccircle cx='256' cy='292' r='62' fill='%23F6F2E7'/%3E%3Cg stroke='%23F6F2E7' stroke-width='22' stroke-linecap='round' fill='none'%3E%3Cpath d='M186 118c0-26 26-26 26-52'/%3E%3Cpath d='M256 104c0-26 26-26 26-52'/%3E%3Cpath d='M326 118c0-26 26-26 26-52'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#F4F1E9;--panel:#FDFCF8;--panel2:#F6F3EA;--ink:#20281F;--ink2:#5C6657;--mut:#8B937F;--line:#E2DCCB;--line2:#EDE8DA;
+--acc:#1F6B4F;--acc2:#2E8B68;--accSoft:#E3EEE7;--amber:#A66A1F;--amberSoft:#F5EAD5;--red:#B23B2E;--redSoft:#F6E2DE;
+--shadow:0 1px 2px rgba(32,40,31,.05),0 10px 26px -14px rgba(32,40,31,.22);--r:14px;--font:'Sora',ui-sans-serif,system-ui,sans-serif}
+[data-theme=dark]{--bg:#141812;--panel:#1B211A;--panel2:#171D16;--ink:#EAE6D8;--ink2:#A9B09B;--mut:#7C8471;--line:#2A3226;--line2:#232A1F;
+--acc:#5FBB93;--acc2:#7CCAA8;--accSoft:#1F332A;--amber:#D9A05B;--amberSoft:#33291A;--red:#E0796C;--redSoft:#3A2320;
+--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 26px -14px rgba(0,0,0,.5)}
+html{font-size:15px}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;min-height:100vh}
+a{color:inherit}
+h1,h2,h3{letter-spacing:-.015em}
+.num{font-variant-numeric:tabular-nums}
+.mut{color:var(--mut)}.sm{font-size:.78rem}
+.lbl{font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--mut);font-weight:600}
+#boot{min-height:100vh;display:grid;place-items:center;padding:20px}
+.center{max-width:420px;width:100%}
+.logo{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.logo svg{width:44px;height:44px;border-radius:11px}
+.logo h1{font-size:1.25rem}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px}
+.field{margin-bottom:12px}
+.field input,.field select,.field textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--ink);font:inherit;font-size:.92rem}
+.field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--acc2);outline-offset:-1px}
+.field textarea{min-height:90px;resize:vertical;font-size:.84rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 16px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-weight:600;font-size:.88rem;cursor:pointer;transition:filter .12s}
+.btn:hover{filter:brightness(.97)}
+.btn-p{background:var(--acc);color:#fff;border-color:var(--acc)}
+.btn-s{background:transparent;border-color:transparent;color:var(--ink2)}
+.btn-d{background:transparent;color:var(--red);border-color:var(--red)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn svg{width:16px;height:16px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:var(--panel);font-size:.76rem;font-weight:600;color:var(--ink2);cursor:pointer}
+.chip.on{background:var(--accSoft);border-color:var(--acc2);color:var(--acc)}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:.68rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.badge.ok{background:var(--accSoft);color:var(--acc)}
+.badge.due{background:var(--amberSoft);color:var(--amber)}
+.badge.adv{background:var(--accSoft);color:var(--acc)}
+.badge.off{background:var(--redSoft);color:var(--red)}
+.badge.active,.badge.left{background:var(--accSoft);color:var(--acc)}
+.badge.inactive{background:var(--redSoft);color:var(--red)}
+#app{display:flex;min-height:100vh}
+#side{width:246px;position:fixed;inset:0 auto 0 0;border-right:1px solid var(--line);background:var(--panel);padding:18px 14px;display:flex;flex-direction:column;gap:2px;z-index:30;overflow-y:auto}
+#side .logo{padding:6px 10px 16px}
+.snav{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:10px;color:var(--ink2);text-decoration:none;font-size:.88rem;font-weight:600}
+.snav svg{width:18px;height:18px}
+.snav.on{background:var(--accSoft);color:var(--acc)}
+.snav:hover{background:var(--panel2)}
+.sgroup{margin:14px 8px 6px}
+#mainwrap{flex:1;margin-left:246px;display:flex;flex-direction:column;min-height:100vh}
+#topbar{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:12px 22px;z-index:20}
+#topbar h2{font-size:1.02rem;margin-right:auto}
+.iconbtn{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink2);cursor:pointer}
+.iconbtn svg{width:17px;height:17px}
+#dot{width:9px;height:9px;border-radius:50%;background:var(--acc)}
+#dot.off{background:var(--red)}
+#qbadge{display:none;background:var(--amber);color:#fff;border-radius:999px;font-size:.6rem;padding:1px 6px;font-weight:700}
+#view{padding:22px;max-width:1080px;width:100%;margin:0 auto;padding-bottom:100px}
+.page-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.page-head h3{font-size:1.05rem}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:var(--r);background:var(--panel);overflow:hidden;box-shadow:var(--shadow)}
+.stat{padding:14px 16px;border-right:1px solid var(--line2);border-bottom:1px solid var(--line2)}
+.stat .v{font-size:1.3rem;font-weight:700;font-variant-numeric:tabular-nums;margin-top:5px}
+.stat .v.small{font-size:1rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.sec{margin-top:18px}
+.sec>h4{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--mut);margin-bottom:8px}
+.today{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:var(--r);background:var(--panel);box-shadow:var(--shadow);overflow:hidden;margin-top:14px;flex-wrap:wrap}
+.today .tdate{padding:16px 18px;border-right:1px solid var(--line2);min-width:118px}
+.today .tdate b{font-size:1.6rem;font-variant-numeric:tabular-nums}
+.today .tset{flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(84px,1fr))}
+.tcell{padding:14px 10px;border-right:1px solid var(--line2);text-align:center}
+.tcell b{display:block;font-size:1.45rem;font-variant-numeric:tabular-nums}
+.tcell.t b{color:var(--acc)}
+.tside{padding:14px 18px;display:flex;flex-direction:column;justify-content:center;border-left:1px solid var(--line2);min-width:130px}
+.tblwrap{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:.83rem}
+.tbl th{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);white-space:nowrap}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--line2);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td.r,.tbl th.r{text-align:right;font-variant-numeric:tabular-nums}
+.rowline{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line2);cursor:pointer}
+.rowline:hover{background:var(--panel2)}
+.rowline:last-child{border-bottom:0}
+.rowline .grow{flex:1;min-width:0}
+.daystrip{display:flex;gap:7px;overflow-x:auto;padding:2px 0 10px}
+.dchip{min-width:64px;text-align:center;padding:7px 9px;border:1px solid var(--line);border-radius:12px;background:var(--panel);cursor:pointer;flex-shrink:0}
+.dchip b{display:block;font-size:1.02rem;font-variant-numeric:tabular-nums}
+.dchip.on{background:var(--accSoft);border-color:var(--acc2)}
+.dchip .tod{color:var(--acc);font-weight:700}
+.mrow{display:grid;grid-template-columns:minmax(130px,1fr) repeat(var(--mt,3),86px) 46px 58px;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--line2)}
+.mrow.absent{opacity:.45}
+.mrow .who b{font-size:.88rem;display:block}
+.step{display:flex;align-items:center;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--panel2)}
+.step button{width:32px;height:32px;background:none;border:0;color:var(--ink2);cursor:pointer;font-size:1.1rem;line-height:1}
+.step .n{min-width:24px;text-align:center;font-weight:600;font-variant-numeric:tabular-nums;font-size:.9rem}
+.step .n.hot{color:var(--acc)}
+.rtot{text-align:center;font-weight:700}
+.tog{width:44px;padding:5px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);font-size:.66rem;font-weight:700;color:var(--mut);cursor:pointer}
+.tog.on{background:var(--amberSoft);color:var(--amber);border-color:var(--amber)}
+.mtotals{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin:8px 0 12px}
+.mtotals .tt{padding:6px 13px;border-radius:10px;background:var(--panel2);font-weight:700;font-variant-numeric:tabular-nums;font-size:.92rem}
+.mtotals .tt.t{background:var(--accSoft);color:var(--acc)}
+.savebar{position:fixed;bottom:78px;left:0;right:0;display:flex;justify-content:center;pointer-events:none;z-index:35}
+@media(min-width:861px){.savebar{bottom:22px}}
+.savebar .btn{pointer-events:auto;box-shadow:0 10px 30px -8px rgba(0,0,0,.4)}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:14px;overflow-x:auto}
+.tab{padding:9px 14px;font-size:.84rem;font-weight:600;color:var(--ink2);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.tab.on{color:var(--acc);border-bottom-color:var(--acc)}
+.mwrap{position:fixed;inset:0;z-index:60;display:grid;place-items:end center}
+@media(min-width:700px){.mwrap{place-items:center}}
+.mback{position:absolute;inset:0;background:rgba(15,20,14,.55)}
+.modal{position:relative;width:100%;max-width:520px;max-height:92vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:16px 16px 0 0;box-shadow:var(--shadow)}
+@media(min-width:700px){.modal{border-radius:16px}}
+.mhead{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line2);position:sticky;top:0;background:var(--panel)}
+.mbody{padding:18px}
+.mfoot{display:flex;gap:8px;justify-content:flex-end;padding:12px 18px;border-top:1px solid var(--line2);position:sticky;bottom:0;background:var(--panel)}
+#toasts{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:8px;width:min(92vw,380px)}
+.toast{background:var(--ink);color:var(--bg);padding:11px 15px;border-radius:11px;font-size:.83rem;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px}
+.toast.err{background:var(--red);color:#fff}
+.toast button{background:none;border:0;color:inherit;font:inherit;font-weight:700;cursor:pointer;text-decoration:underline}
+#ob{position:fixed;top:0;left:0;right:0;z-index:70;background:var(--amber);color:#fff;text-align:center;font-size:.78rem;font-weight:600;padding:6px}
+#bnav{display:none}
+#bnav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px 5px;font-size:.6rem;font-weight:600;color:var(--ink2);text-decoration:none}
+#bnav a svg{width:20px;height:20px}
+#bnav a.on{color:var(--acc)}
+.fab{position:fixed;right:18px;bottom:92px;width:54px;height:54px;border-radius:16px;background:var(--acc);color:#fff;border:0;box-shadow:0 12px 28px -8px rgba(31,107,79,.55);cursor:pointer;display:grid;place-items:center;z-index:35}
+.fab svg{width:22px;height:22px}
+.leg{display:flex;flex-direction:column;gap:5px;font-size:.78rem}
+.leg .li{display:flex;align-items:center;gap:8px}
+.leg .sw{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+.itemrows .irow{display:grid;grid-template-columns:1fr 74px 58px 84px 34px;gap:7px;margin-bottom:8px;align-items:center}
+.itemrows input,.itemrows select{padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--ink);font:inherit;font-size:.85rem}
+.chartcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
+.chartcard h5{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--mut);margin-bottom:10px}
+.alert{display:flex;gap:9px;align-items:center;padding:10px 13px;border:1px solid var(--amber);background:var(--amberSoft);color:var(--amber);border-radius:10px;font-size:.8rem;font-weight:600;margin-top:10px}
+.alert svg{width:16px;height:16px;flex-shrink:0}
+.loader{display:flex;justify-content:center;padding:50px}
+.loader i{width:26px;height:26px;border:3px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.errbox{padding:30px;text-align:center;color:var(--red);font-weight:600}
+.wizdots{display:flex;gap:6px;margin:12px 0 18px}
+.wizdots i{width:26px;height:5px;border-radius:3px;background:var(--line)}
+.wizdots i.on{background:var(--acc)}
+.fline{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line2);font-size:.87rem}
+.sw{width:42px;height:24px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;flex-shrink:0;transition:background .15s}
+.sw::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--panel);transition:left .15s}
+.sw.on{background:var(--acc)}
+.sw.on::after{left:21px}
+#usermenu{position:absolute;top:52px;right:14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);min-width:200px;padding:6px;z-index:50;display:none}
+#usermenu a{display:flex;gap:10px;align-items:center;padding:9px 12px;border-radius:8px;text-decoration:none;font-size:.85rem;font-weight:600;color:var(--ink2);cursor:pointer}
+#usermenu a:hover{background:var(--panel2)}
+#usermenu a svg{width:16px;height:16px}
+@media(max-width:860px){
+#side{display:none}#mainwrap{margin-left:0}
+#bnav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--panel);border-top:1px solid var(--line);z-index:40;padding:5px 6px calc(5px + env(safe-area-inset-bottom))}
+#view{padding:14px 14px 92px}
+.stats{grid-template-columns:repeat(2,1fr)}
+.grid2{grid-template-columns:1fr}
+.mrow{grid-template-columns:minmax(104px,1fr) repeat(var(--mt,3),72px) 40px 52px;gap:5px;padding:8px 6px}
+.fline{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="boot"><div class="loader"><i></i></div></div>
+<div id="app" hidden>
+  <div id="ob" hidden>Offline — read only. Queued changes will sync when you are back online.</div>
+  <aside id="side"></aside>
+  <div id="mainwrap">
+    <header id="topbar">
+      <h2 id="pgtitle">Dashboard</h2>
+      <span id="qbadge"></span><span id="dot"></span>
+      <button class="iconbtn" id="btnSearch" title="Search"></button>
+      <button class="iconbtn" id="btnTheme" title="Theme"></button>
+      <div style="position:relative">
+        <button class="iconbtn" id="btnUser" title="Account"></button>
+        <div id="usermenu"></div>
+      </div>
+    </header>
+    <main id="view"></main>
+  </div>
+  <nav id="bnav"></nav>
+</div>
+<div id="modals"></div>
+<div id="toasts"></div>
+<script>
+/* ================= helpers ================= */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const h=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const LS={api:'ml_api',token:'ml_token',theme:'ml_theme',cache:'ml_c_',queue:'ml_q',user:'ml_user',settings:'ml_st'};
+const uuid=()=>(crypto.randomUUID?crypto.randomUUID():'id-'+Date.now()+'-'+Math.random().toString(36).slice(2));
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const todayISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const monthOf=d=>String(d).substring(0,7);
+const addDays=(d,n)=>{const p=d.split('-');const dt=new Date(+p[0],+p[1]-1,+p[2]+n);return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0')};
+const fmtD=d=>{const p=String(d).split('-');return (+p[2])+' '+MONTHS[+p[1]-1]+' '+p[0]};
+const fmtML=m=>{const p=String(m).split('-');return MONTHS[+p[1]-1]+' '+p[0]};
+const r2l=n=>Math.round((Number(n)||0)*100)/100;
+const cur=()=>S.settings.CURRENCY||'\u09F3';
+const fmtM=n=>{const v=Math.round((Number(n)||0)*100)/100;return cur()+v.toLocaleString('en-US',{maximumFractionDigits:2})};
+function ApiErr(code,msg){return{code,msg}}
+const ICONS={
+home:'M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z',
+bowl:'M4 13h16a8 8 0 0 1-16 0zM9 10c-1-1.5 1-2.5 0-4M12 10c-1-1.5 1-2.5 0-4M15 10c-1-1.5 1-2.5 0-4',
+basket:'M4 9h16l-2 11H6L4 9zM8 9l2-5M16 9l-2-5',
+users:'M16 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 20v-2a4 4 0 0 0-3-3.9',
+more:'M12 5.5h.01M12 12h.01M12 18.5h.01',
+search:'M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0M21 21l-4.3-4.3',
+plus:'M12 5v14M5 12h14',minus:'M5 12h14',
+moon:'M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z',
+sun:'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+mail:'M4 6h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1M3 7l9 6 9-6',
+send:'M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z',
+chat:'M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.6 0-3-.4-4.3-1L3 20l1-5.2A8.5 8.5 0 1 1 21 11.5z',
+download:'M12 3v12M7 10l5 5 5-5M4 21h16',
+print:'M7 8V3h10v5M5 8h14a2 2 0 0 1 2 2v6h-4v5H7v-5H3v-6a2 2 0 0 1 2-2M7 16h10',
+file:'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5M14 3v5h5',
+edit:'M17 3l4 4L8 20H4v-4L17 3z',
+trash:'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
+close:'M6 6l12 12M18 6 6 18',check:'M5 13l4 4L19 7',
+chevR:'M9 6l6 6-6 6',user:'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+phone:'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.5 2.1L8 10a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c1 .3 2 .6 2.9.7a2 2 0 0 1 1.7 2z',
+refresh:'M21 12a9 9 0 1 1-2.6-6.4M21 3v6h-6',
+alert:'M12 3l10 18H2L12 3zM12 10v4M12 17.5h.01',
+logout:'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9',
+wallet:'M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7zM15 12h4',
+scale:'M12 4v16M8 20h8M12 6l-5 2m5-2 5 2M3.5 12a3.5 3.5 0 0 0 7 0L7 8l-3.5 4M13.5 12a3.5 3.5 0 0 0 7 0L17 8l-3.5 4z',
+bell:'M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8M10.3 21a2 2 0 0 0 3.4 0',
+book:'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z',
+copy:'M9 9h11a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V10a1 1 0 0 1 1-1M5 15V5a2 2 0 0 1 2-2h10',
+calendar:'M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2M16 3v4M8 3v4M3 11h18',
+shield:'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3M9 12l2 2 4-4'};
+const ico=(n,st)=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"'+(st?' style="'+st+'"':'')+'><path d="'+(ICONS[n]||'')+'"/></svg>';
+const BRAND='<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><rect width="512" height="512" rx="104" fill="var(--acc)"/><circle cx="256" cy="292" r="118" fill="none" stroke="#F6F2E7" stroke-width="30"/><circle cx="256" cy="292" r="62" fill="#F6F2E7"/><g stroke="#F6F2E7" stroke-width="22" stroke-linecap="round" fill="none"><path d="M186 118c0-26 26-26 26-52"/><path d="M256 104c0-26 26-26 26-52"/><path d="M326 118c0-26 26-26 26-52"/></g></svg>';
+function toast(msg,type,action){
+  const t=document.createElement('div'); t.className='toast'+(type==='err'?' err':'');
+  t.innerHTML='<span style="flex:1">'+h(msg)+'</span>'+(action?'<button>'+h(action.label)+'</button>':'');
+  if(action) t.querySelector('button').onclick=()=>{action.cb();t.remove();};
+  $('#toasts').appendChild(t); setTimeout(()=>t.remove(),4200);
+}
+function openModal(title,body,foot){
+  const w=document.createElement('div'); w.className='mwrap';
+  w.innerHTML='<div class="mback"></div><div class="modal"><div class="mhead"><h3>'+h(title)+'</h3><button class="iconbtn mclose">'+ico('close')+'</button></div><div class="mbody">'+body+'</div>'+(foot?'<div class="mfoot">'+foot+'</div>':'')+'</div>';
+  $('#modals').appendChild(w);
+  w.querySelector('.mback').onclick=w.querySelector('.mclose').onclick=()=>w.remove();
+  return w;
+}
+function confirmDlg(msg,danger){return new Promise(res=>{
+  const w=openModal('Please confirm','<p style="font-size:.9rem;line-height:1.5">'+h(msg)+'</p>',
+    '<button class="btn btn-s" data-n>Cancel</button><button class="btn '+(danger?'btn-d':'btn-p')+'" data-y>Confirm</button>');
+  w.querySelector('[data-y]').onclick=()=>{w.remove();res(true)};
+  w.querySelector('[data-n]').onclick=()=>{w.remove();res(false)};});}
+function printHtml(title,inner){
+  const f=document.createElement('iframe'); f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';
+  document.body.appendChild(f);
+  f.srcdoc='<html><head><title>'+h(title)+'</title><style>body{font-family:Arial,sans-serif;color:#20281F;margin:24px}table{border-collapse:collapse;width:100%;margin:10px 0}td,th{border:1px solid #d8d4c4;padding:6px 9px;font-size:12px;text-align:left}h2{margin:0 0 2px}p{margin:2px 0;color:#666;font-size:11px}</style></head><body>'+inner+'</body></html>';
+  f.onload=()=>{setTimeout(()=>{f.contentWindow.print();setTimeout(()=>f.remove(),400);},200)};
+}
+function downloadPdf(b64,filename){
+  const a=document.createElement('a'); a.href='data:application/pdf;base64,'+b64; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
+}
+/* ================= state & api ================= */
+const S={api:localStorage.getItem(LS.api)||'',token:localStorage.getItem(LS.token)||'',
+  user:JSON.parse(localStorage.getItem(LS.user)||'null'),settings:JSON.parse(localStorage.getItem(LS.settings)||'{}'),
+  online:navigator.onLine,installEvt:null,waConfigured:false};
+let CACHE_MEMBERS=null;
+const CACHEABLE=['dashboard.get','members.list','meals.get','bazar.list','expenses.list','payments.list','accounting.summary','accounting.preview','notifications.list','audit.list','users.list','members.statement','members.get','settings.get'];
+const QUEUEABLE=['meals.save','payments.create','bazar.create','expenses.create'];
+const apiKeyOf=(a,p)=>a+'|'+JSON.stringify(p||{});
+function cachePut(a,p,d){ if(CACHEABLE.includes(a)){try{localStorage.setItem(LS.cache+apiKeyOf(a,p),JSON.stringify({t:Date.now(),d:d}))}catch(e){}} }
+function cacheGet(a,p){ try{const j=localStorage.getItem(LS.cache+apiKeyOf(a,p)); return j?JSON.parse(j).d:null}catch(e){return null} }
+function getQueue(){ try{return JSON.parse(localStorage.getItem(LS.queue)||'[]')}catch(e){return[]} }
+function setQueue(q){ localStorage.setItem(LS.queue,JSON.stringify(q)); updateSyncBadge(); }
+function queueAdd(a,p){ p.clientId=p.clientId||uuid(); const q=getQueue(); q.push({action:a,payload:p,ts:Date.now()}); setQueue(q); }
+function updateSyncBadge(){ const n=getQueue().length; const b=$('#qbadge'); if(b){b.style.display=n?'inline-block':'none';b.textContent=n+' pending';} }
+async function api(action,payload={}){
+  if(!S.api) throw ApiErr('NO_API','App URL is not set');
+  let res;
+  try{ res=await fetch(S.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,token:S.token,payload,meta:{agent:navigator.userAgent}})}); }
+  catch(net){ if(QUEUEABLE.includes(action)){ payload.clientId=payload.clientId||uuid(); queueAdd(action,payload); throw ApiErr('OFFLINE','Saved on this device — it will sync automatically when you are online.'); }
+    throw ApiErr('OFFLINE','You appear to be offline.'); }
+  if(!res.ok){ if(QUEUEABLE.includes(action)){ payload.clientId=payload.clientId||uuid(); queueAdd(action,payload); throw ApiErr('OFFLINE','Saved on this device — it will sync when online.'); }
+    throw ApiErr('NETWORK','Server error ('+res.status+')'); }
+  const j=await res.json();
+  if(!j.success){ if(j.errorCode==='AUTH'){ doLogout(false); } throw ApiErr(j.errorCode,j.message); }
+  cachePut(action,payload,j.data); return j.data;
+}
+async function apiC(action,payload={}){
+  try{ return await api(action,payload); }
+  catch(e){ if(e.code==='OFFLINE'||e.code==='NETWORK'){ const c=cacheGet(action,payload); if(c) return c; } throw e; }
+}
+async function flushQueue(){
+  const q=getQueue(); if(!q.length) return;
+  const remain=[];
+  for(const it of q){
+    try{ await api(it.action,it.payload); toast('Synced one pending change',''); }
+    catch(e){ if(e.code==='OFFLINE'||e.code==='NETWORK') remain.push(it); else toast('Could not sync a queued change: '+e.msg,'err'); }
+  }
+  setQueue(remain);
+}
+function onlineWatch(){
+  const upd=()=>{ S.online=navigator.onLine; $('#ob').hidden=S.online; $('#dot').className=S.online?'':'off'; if(S.online) flushQueue(); };
+  addEventListener('online',upd); addEventListener('offline',upd);
+}
+/* ================= boot / auth ================= */
+function applyTheme(t){ document.documentElement.dataset.theme=t; localStorage.setItem(LS.theme,t);
+  $('#metaTheme').content=(t==='dark')?'#141812':'#F4F1E9'; }
+function toggleTheme(){ applyTheme((localStorage.getItem(LS.theme)||'light')==='light'?'dark':'light'); }
+async function init(){
+  applyTheme(localStorage.getItem(LS.theme)||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'));
+  onlineWatch(); updateSyncBadge(); registerSW();
+  if(!S.api){ renderApiScreen(); return; }
+  try{
+    const st=await api('setup.status');
+    if(!st.configured){ renderWizard(); return; }
+  }catch(e){ if(S.user&&S.settings){ startApp(); return; } renderApiScreen(e.msg); return; }
+  if(!S.token){ renderLogin(); return; }
+  try{ const me=await apiC('auth.me'); S.user=me.user; S.settings=me.settings; persist(); startApp(); }
+  catch(e){ if(e.code==='AUTH'){ renderLogin(); return; }
+    if(S.user&&S.settings){ startApp(); return; } renderLogin(); }
+}
+function persist(){ localStorage.setItem(LS.user,JSON.stringify(S.user)); localStorage.setItem(LS.settings,JSON.stringify(S.settings)); }
+function renderApiScreen(err){
+  $('#app').hidden=true;
+  $('#boot').hidden=false;
+  $('#boot').innerHTML='<div class="center card"><div class="logo">'+BRAND+'<div><h1>Mess Ledger</h1><div class="sm mut">Connect to your Google Apps Script backend</div></div></div>'
+   +(err?'<div class="alert">'+ico('alert')+h(err)+'</div>':'')
+   +'<div class="field" style="margin-top:8px"><div class="lbl" style="margin-bottom:5px">Web App URL</div>'
+   +'<input id="apiurl" placeholder="https://script.google.com/macros/s/.../exec" value="'+h(S.api)+'"></div>'
+   +'<button class="btn btn-p" id="go" style="width:100%">'+ico('chevR')+'Connect</button>'
+   +'<p class="sm mut" style="margin-top:12px;line-height:1.5">This is the /exec URL from Deploy &gt; New deployment &gt; Web app in your Apps Script project.</p></div>';
+  $('#go').onclick=async()=>{
+    const v=$('#apiurl').value.trim();
+    if(!/https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(v)){ toast('That does not look like an Apps Script /exec URL','err'); return; }
+    S.api=v; localStorage.setItem(LS.api,v);
+    try{ const st=await api('setup.status'); toast('Connected to '+h(st.mess||st.app),''); init(); }
+    catch(e){ toast('Could not connect: '+e.msg,'err'); }
+  };
+}
+function renderLogin(msg){
+  $('#app').hidden=true; $('#boot').hidden=false;
+  $('#boot').innerHTML='<div class="center card"><div class="logo">'+BRAND+'<div><h1>'+h(S.settings.APP_NAME||'Mess Ledger')+'</h1><div class="sm mut">'+h(S.settings.MESS_NAME||'')+'</div></div></div>'
+   +(msg?'<div class="alert">'+ico('alert')+h(msg)+'</div>':'')
+   +'<form id="lform"><div class="field"><div class="lbl" style="margin-bottom:5px">Email</div><input id="lemail" type="email" autocomplete="username" required></div>'
+   +'<div class="field"><div class="lbl" style="margin-bottom:5px">Password</div><input id="lpw" type="password" autocomplete="current-password" required></div>'
+   +'<button class="btn btn-p" style="width:100%">Sign in</button></form></div>';
+  $('#lform').onsubmit=async ev=>{ ev.preventDefault();
+    try{ const r=await api('auth.login',{email:$('#lemail').value,password:$('#lpw').value});
+      S.token=r.token; S.user=r.user; localStorage.setItem(LS.token,S.token);
+      const me=await api('auth.me'); S.user=me.user; S.settings=me.settings; persist(); startApp();
+      toast(r.message);
+    }catch(e){ toast(e.msg,'err'); } };
+}
+function doLogout(callServer){
+  if(callServer) api('auth.logout',{}).catch(()=>{});
+  localStorage.removeItem(LS.token); S.token=''; location.hash='';
+  renderLogin();
+}
+/* ================= setup wizard ================= */
+function renderWizard(){
+  $('#app').hidden=true; $('#boot').hidden=false;
+  const steps=['Mess information','Admin account','Meal configuration','Notifications','WhatsApp','Finish'];
+  let st=0; const W={mess:{},admin:{},acct:{},notif:{email:true},wa:{}};
+  const body=()=>'<div class="center card" style="max-width:480px"><div class="logo">'+BRAND+'<div><h1>First-time setup</h1><div class="sm mut">Step '+(st+1)+' of 6 — '+h(steps[st])+'</div></div></div>'
+    +'<div class="wizdots">'+steps.map((_,i)=>'<i class="'+(i<=st?'on':'')+'"></i>').join('')+'</div><div id="wstep"></div>'
+    +'<div style="display:flex;gap:8px;margin-top:16px">'+(st>0?'<button class="btn btn-s" id="wback">Back</button>':'')
+    +'<button class="btn btn-p" style="flex:1" id="wnext">'+(st===5?'Finish setup':'Continue')+'</button></div></div>';
+  $('#boot').innerHTML=body(); renderStep();
+  function renderStep(){
+    const w=$('#wstep'); const g=(id,lbl,ph,val,type)=>'<div class="field"><div class="lbl" style="margin-bottom:5px">'+lbl+'</div><input id="'+id+'" type="'+(type||'text')+'" placeholder="'+h(ph||'')+'" value="'+h(val||'')+'"></div>';
+    if(st===0) w.innerHTML='<form id="wf">'+g('wname','Mess name','Green House Mess')+g('waddr','Address','House 12, Road 4')+g('wphone','Contact number','017XXXXXXXX')+'<div class="fline">'+g('wemail','Email','mess@gmail.com')+'</div></form>';
+    if(st===1) w.innerHTML='<form id="wf">'+g('waname','Your name','Admin Name')+g('waemail','Your email (login)','you@gmail.com')+g('wamob','Your mobile','017XXXXXXXX')+'<div class="fline">'+g('wapw','Password (min 6 chars)','','', 'password')+g('wapw2','Repeat password','','','password')+'</div></form>';
+    if(st===2) w.innerHTML='<form id="wf"><div class="fline">'+g('wcur','Currency symbol','\u09F3')+g('wtz','Timezone','Asia/Dhaka')+'</div>'
+      +g('wtypes','Meal types (comma separated)','Breakfast,Lunch,Dinner')
+      +'<div class="field"><div class="lbl" style="margin-bottom:5px">Meal cost calculation method</div><select id="wcalc"><option value="meals_only_equal">Meal rate = Bazar / Meals, other expenses split equally</option><option value="meals_plus_fixed">Meal rate = Bazar / Meals, other expenses from fixed charges</option><option value="all_inclusive">Meal rate = (Bazar + other expenses) / Meals</option></select></div>'
+      +'<div class="fline">'+g('wfixed','Default fixed charge per member','0')+g('wclose','Month closing day (1–28)','1')+'</div></form>';
+    if(st===3) w.innerHTML='<div class="switch">Send email notifications (bills, receipts)<div class="sw on" data-k="email"></div></div>'
+      +'<p class="sm mut" style="margin:10px 0">Automation can be enabled later in Settings — it uses Apps Script time triggers.</p>';
+    if(st===4) w.innerHTML='<p class="sm" style="margin-bottom:10px">Optional. The app works perfectly without it (it falls back to WhatsApp share links). Any provider that accepts a JSON POST works.</p>'
+      +'<div class="field"><div class="lbl" style="margin-bottom:5px">Provider</div><select id="wprov"><option value="none">Not now</option><option value="generic">Generic JSON API</option></select></div>'
+      +g('wurl','API URL','https://your-provider/api/send')+g('wkey','API key / token','','','password')
+      +'<div class="fline">'+g('wsender','Sender number','')+g('wcc','Country code','880')+'</div>';
+    if(st===5) w.innerHTML='<div class="rowline" style="cursor:default"><div class="grow"><b>'+h(W.mess.name||'Your mess')+'</b><div class="sm mut">Admin: '+h(W.admin.email||'')+'</div></div></div>'
+      +'<p class="sm mut" style="line-height:1.6">Setup creates the database structure, your admin account and default settings. You can load demo data afterwards to explore.</p>';
+    $$('#wstep .sw').forEach(s=>s.onclick=()=>s.classList.toggle('on'));
+    const nx=$('#wnext'); nx.onclick=collect;
+    const bk=$('#wback'); if(bk) bk.onclick=()=>{st--;$('#boot').innerHTML=body();renderStep();};
+    function collect(){
+      if(st===0){ W.mess={name:$('#wname').value.trim(),address:$('#waddr').value.trim(),phone:$('#wphone').value.trim(),email:$('#wemail').value.trim()}; if(!W.mess.name){toast('Mess name is required','err');return;} }
+      if(st===1){ W.admin={name:$('#waname').value.trim(),email:$('#waemail').value.trim(),mobile:$('#wamob').value.trim(),password:$('#wapw').value};
+        if(W.admin.password.length<6||W.admin.password!==$('#wapw2').value){toast('Passwords must match and be at least 6 characters','err');return;} }
+      if(st===2){ W.acct={currency:$('#wcur').value||'\u09F3',timezone:$('#wtz').value||'Asia/Dhaka',mealTypes:$('#wtypes').value||'Breakfast,Lunch,Dinner',calcMethod:$('#wcalc').value,fixedCharge:$('#wfixed').value||'0',closingDay:$('#wclose').value||'1'}; }
+      if(st===3){ W.notif={email:$$('#wstep .sw')[0].classList.contains('on')}; }
+      if(st===4){ W.wa={provider:$('#wprov').value,url:$('#wurl').value.trim(),apiKey:$('#wkey').value,sender:$('#wsender').value.trim(),countryCode:$('#wcc').value||'880'}; }
+      if(st===5) return finish();
+      st++; $('#boot').innerHTML=body(); renderStep();
+    }
+    async function finish(){
+      try{
+        const r=await api('setup.complete',{mess:W.mess,admin:W.admin,accounting:W.acct,notify:W.notif,whatsapp:W.wa});
+        S.token=r.token; localStorage.setItem(LS.token,S.token);
+        const me=await api('auth.me'); S.user=me.user; S.settings=me.settings; persist();
+        const ok=await confirmDlg('Setup complete. Load demo data (12 members, meals, bazar, expenses, payments) to explore the system? You can safely delete it later from Settings.');
+        if(ok){ try{ const d=await api('setup.seedDemo'); toast(d.message,''); }catch(e){ toast(e.msg,'err'); } }
+        startApp();
+      }catch(e){ toast(e.msg,'err'); }
+    }
+  }
+}
+/* ================= app shell & router ================= */
+const ROLE_NAV=[
+ {id:'dashboard',t:'Dashboard',i:'home',roles:['Admin','Manager','Accountant','Member']},
+ {id:'meals',t:'Meals',i:'bowl',roles:['Admin','Manager','Accountant','Member']},
+ {id:'bazar',t:'Bazar',i:'basket',roles:['Admin','Manager','Accountant']},
+ {id:'members',t:'Members',i:'users',roles:['Admin','Manager','Accountant']},
+ {id:'more',t:'More',i:'more',roles:['Admin','Manager','Accountant','Member']}];
+const SIDE_GROUPS=[
+ {label:'Daily',items:['dashboard','meals','bazar','expenses','payments']},
+ {label:'People',items:['members']},
+ {label:'Records',items:['reports','notifications','audit']},
+ {label:'System',items:['users','settings']}];
+const NAV_DEFS={
+ dashboard:['Dashboard','home',['Admin','Manager','Accountant','Member']],
+ meals:['Meals','bowl',['Admin','Manager','Accountant','Member']],
+ bazar:['Bazar','basket',['Admin','Manager','Accountant']],
+ expenses:['Expenses','wallet',['Admin','Manager','Accountant']],
+ payments:['Payments','scale',['Admin','Manager','Accountant']],
+ members:['Members','users',['Admin','Manager','Accountant']],
+ reports:['Reports','file',['Admin','Manager','Accountant']],
+ notifications:['Notifications','bell',['Admin','Manager']],
+ audit:['Audit log','book',['Admin']],
+ users:['Users','shield',['Admin']],
+ settings:['Settings','edit',['Admin','Manager','Accountant','Member']]};
+function startApp(){
+  $('#boot').hidden=true; $('#app').hidden=false;
+  const role=S.user.role;
+  $('#side').innerHTML='<div class="logo">'+BRAND.replace('44','36')+'<div><div style="font-weight:700">'+h(S.settings.APP_NAME||'Mess Ledger')+'</div><div class="sm mut">'+h(S.settings.MESS_NAME||'')+'</div></div></div>'
+    +SIDE_GROUPS.map(g=>{
+      const items=g.items.filter(id=>NAV_DEFS[id]&&NAV_DEFS[id][2].includes(role));
+      if(!items.length) return '';
+      return '<div class="sgroup lbl">'+g.label+'</div>'+items.map(id=>{const l=NAV_DEFS[id];return '<a class="snav" href="#/'+id+'" data-id="'+id+'">'+ico(l[1])+l[0]+'</a>';}).join('');
+    }).join('')
+    +'<div style="flex:1"></div><a class="snav" style="color:var(--red)" id="slogout">'+ico('logout')+'Sign out</a>';
+  $('#slogout').onclick=()=>doLogout(true);
+  $('#bnav').innerHTML=ROLE_NAV.filter(n=>n.roles.includes(role)).map(n=>'<a href="#/'+n.id+'" data-id="'+n.id+'">'+ico(n.i)+n.t+'</a>').join('');
+  $('#btnSearch').innerHTML=ico('search'); $('#btnTheme').innerHTML=ico(localStorage.getItem(LS.theme)==='dark'?'sun':'moon');
+  $('#btnSearch').onclick=()=>location.hash='#/search';
+  $('#btnTheme').onclick=()=>{toggleTheme();$('#btnTheme').innerHTML=ico(localStorage.getItem(LS.theme)==='dark'?'sun':'moon');};
+  $('#btnUser').innerHTML=ico('user');
+  $('#btnUser').onclick=e=>{e.stopPropagation();const m=$('#usermenu');m.style.display=m.style.display==='block'?'none':'block';};
+  document.addEventListener('click',()=>$('#usermenu').style.display='none');
+  $('#usermenu').innerHTML='<div style="padding:9px 12px" class="sm"><b>'+h(S.user.name)+'</b><div class="mut">'+h(S.user.email)+' · '+h(S.user.role)+'</div></div>'
+    +'<a id="umPw">'+ico('shield')+'Change password</a><a id="umOut">'+ico('logout')+'Sign out</a>';
+  $('#umOut').onclick=()=>doLogout(true);
+  $('#umPw').onclick=changePwModal;
+  $('#dot').className=S.online?'':'off'; $('#ob').hidden=S.online; updateSyncBadge();
+  if(!location.hash) location.hash='#/dashboard';
+  addEventListener('hashchange',renderRoute);
+  renderRoute(); flushQueue();
+}
+function changePwModal(){
+  const w=openModal('Change password',
+    '<div class="field"><div class="lbl" style="margin-bottom:5px">Current password</div><input id="pw0" type="password"></div>'
+    +'<div class="field"><div class="lbl" style="margin-bottom:5px">New password</div><input id="pw1" type="password"></div>',
+    '<button class="btn btn-p" id="pwgo">Save</button>');
+  w.querySelector('#pwgo').onclick=async()=>{
+    try{ const r=await api('auth.changePassword',{current:w.querySelector('#pw0').value,next:w.querySelector('#pw1').value}); toast(r.message); w.remove(); }
+    catch(e){ toast(e.msg,'err'); } };
+}
+function renderRoute(){
+  const hsh=location.hash.replace(/^#\/?/,'')||'dashboard';
+  const [path,qs]=hsh.split('?'); const params=new URLSearchParams(qs||'');
+  const PAGES={dashboard:viewDashboard,meals:viewMeals,bazar:viewBazar,expenses:viewExpenses,payments:viewPayments,members:viewMembers,member:viewMember,reports:viewReports,notifications:viewNotifications,audit:viewAudit,users:viewUsers,settings:viewSettings,more:viewMore,search:viewSearch};
+  const pg=PAGES[path]?path:'dashboard';
+  $('#view').innerHTML='<div class="loader"><i></i></div>';
+  PAGES[pg](params).catch(e=>{
+    $('#view').innerHTML='<div class="errbox">'+h(e.msg||'Could not load this page')+'</div>'; });
+  $('#pgtitle').textContent=({dashboard:'Dashboard',meals:'Daily meals',bazar:'Bazar',expenses:'Expenses',payments:'Payments',members:'Members',member:'Member profile',reports:'Reports & closing',notifications:'Notification outbox',audit:'Audit log',users:'Users & roles',settings:'Settings',more:'More',search:'Search'})[pg];
+  $$('#side .snav,#bnav a').forEach(a=>a.classList.toggle('on',a.dataset.id===pg));
+}
+/* ================= charts ================= */
+const PALETTE=['#2E8B68','#C98A2D','#B2543B','#7A9B57','#5E8B7A','#8B6E4E','#A38A6E','#4E6E5E'];
+function barChart(items,h2){
+  const w=560,hh=h2||140,max=Math.max(1,...items.map(i=>i.value));
+  const bw=Math.max(3,(w/items.length)*0.6);
+  let bars='',labels='';
+  items.forEach((it,i)=>{
+    const cx=(i+0.5)*w/items.length, x=cx-bw/2;
+    const bh=Math.max(it.value>0?3:0,(it.value/max)*(hh-24));
+    bars+='<rect x="'+x.toFixed(1)+'" y="'+(hh-18-bh).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="3" fill="var(--acc)" opacity="'+(it.value?0.85:0.15)+'"><title>'+h(it.label)+': '+h(it.display||it.value)+'</title></rect>';
+    if(items.length<=8||i%2===0) labels+='<text x="'+cx+'" y="'+(hh-4)+'" text-anchor="middle" font-size="8.5" fill="var(--mut)">'+h(it.label)+'</text>';
+  });
+  return '<svg viewBox="0 0 '+w+' '+hh+'" style="width:100%;height:auto;display:block">'+bars+'<line x1="0" y1="'+(hh-18)+'" x2="'+w+'" y2="'+(hh-18)+'" stroke="var(--line)"/>'+labels+'</svg>';
+}
+function donut(items,totalLabel){
+  const total=items.reduce((s,i)=>s+i.value,0)||1;
+  let segs='',off=0; const C=2*Math.PI*54;
+  items.forEach(it=>{ const dash=(it.value/total)*C;
+    segs+='<circle r="54" cx="70" cy="70" fill="none" stroke="'+it.color+'" stroke-width="17" stroke-dasharray="'+dash.toFixed(1)+' '+(C-dash).toFixed(1)+'" stroke-dashoffset="'+(-off).toFixed(1)+'" transform="rotate(-90 70 70)"><title>'+h(it.label)+': '+h(it.value)+'</title></circle>'; off+=dash; });
+  return '<div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap"><svg viewBox="0 0 140 140" width="140" height="140">'+segs+'<text x="70" y="74" text-anchor="middle" font-size="14" font-weight="700" fill="var(--ink)">'+h(totalLabel)+'</text></svg>'
+    +'<div class="leg">'+items.map(it=>'<div class="li"><span class="sw" style="background:'+it.color+'"></span>'+h(it.label)+' <span class="mut num">'+h(it.display||it.value)+'</span></div>').join('')+'</div></div>';
+}
+/* ================= views ================= */
+async function viewDashboard(){
+  const d=await apiC('dashboard.get');
+  if(d.own) return renderMemberDash(d);
+  const m=d.month;
+  const stat=(lbl,val,small)=>'<div class="stat"><div class="lbl">'+lbl+'</div><div class="v'+(small?' small':'')+'">'+val+'</div></div>';
+  const cats=Object.entries(d.bazarByCategory).sort((a,b)=>b[1]-a[1]).slice(0,7);
+  $('#view').innerHTML=
+   '<div class="page-head"><h3>Current month — '+h(fmtML(m.month))+'</h3>'
+   +(m.status==='LOCKED'?'<span class="badge off">Month closed</span>':'<span class="badge ok">Month open</span>')+'</div>'
+   +'<div class="stats">'
+   +stat('Active members',m.activeMembers)+stat('Total meals','<span class="num">'+m.meals+'</span>')
+   +stat('Meal rate','<span class="num">'+fmtM(m.mealRate)+'</span>')+stat('Collection','<span class="num">'+fmtM(m.collection)+'</span>')
+   +stat('Bazar','<span class="num">'+fmtM(m.bazar)+'</span>',1)+stat('Other expenses','<span class="num">'+fmtM(m.expenses)+'</span>',1)
+   +stat('Total expense','<span class="num">'+fmtM(m.totalExpense)+'</span>',1)+stat('Outstanding','<span class="num" style="color:var(--amber)">'+fmtM(m.outstanding)+'</span>',1)
+   +'</div>'
+   +(d.alerts.missingMealDays>0?'<div class="alert">'+ico('alert')+'<span>Days without any meal entry this month: '+d.alerts.missingMealDays+' — <a href="#/meals">fix now</a></span></div>':'')
+   +'<div class="today"><div class="tdate"><div class="lbl">Today</div><b class="num">'+fmtD(d.today.date).split(' ').slice(0,2).join(' ')+'</b><div class="sm mut">'+fmtD(d.today.date)+'</div></div>'
+   +'<div class="tset">'+d.mealTypes.map(t=>'<div class="tcell"><div class="lbl">'+h(t.slice(0,9))+'</div><b class="num">'+(d.today.meals[t]||0)+'</b></div>').join('')
+   +'<div class="tcell t"><div class="lbl">Total</div><b class="num">'+d.today.total+'</b></div></div>'
+   +'<div class="tside"><div class="lbl">Today\u2019s bazar</div><b class="num" style="font-size:1.2rem">'+fmtM(d.today.bazar)+'</b><div class="sm mut">'+d.today.bazarCount+' entries</div></div></div>'
+   +'<div class="grid2"><div class="chartcard"><h5>Meals — last 14 days</h5>'+barChart(d.trend.map(t=>({label:t.date.substring(8),value:t.meals})))+'</div>'
+   +'<div class="chartcard"><h5>Daily expense — last 14 days</h5>'+barChart(d.trend.map(t=>({label:t.date.substring(8),value:t.expense,display:fmtM(t.expense)})))+'</div></div>'
+   +'<div class="grid2"><div class="chartcard"><h5>Bazar by category — this month</h5>'+(cats.length?donut(cats.map((c,i)=>({label:c[0],value:c[1],color:PALETTE[i%PALETTE.length],display:fmtM(c[1])})),fmtM(m.bazar)):'<p class="sm mut">No bazar recorded yet this month.</p>')+'</div>'
+   +'<div class="chartcard"><h5>Member meal consumption</h5>'+(d.topMembers.length?barChart(d.topMembers.map(x=>({label:x.name.split(' ')[0],value:x.meals}))):'<p class="sm mut">No meals yet.</p>')+'</div></div>';
+}
+function renderMemberDash(d){
+  $('#view').innerHTML='<div class="page-head"><h3>Your summary — '+h(fmtML(d.month))+'</h3>'+(d.balance>0?'<span class="badge due">Due '+fmtM(d.balance)+'</span>':d.balance<0?'<span class="badge adv">Advance '+fmtM(Math.abs(d.balance))+'</span>':'<span class="badge ok">Paid up</span>')+'</div>'
+   +'<div class="stats">'
+   +'<div class="stat"><div class="lbl">Your meals this month</div><div class="v num">'+d.meals+'</div></div>'
+   +'<div class="stat"><div class="lbl">Meal rate</div><div class="v num">'+fmtM(d.mealRate)+'</div></div>'
+   +'<div class="stat"><div class="lbl">Total payable</div><div class="v num">'+fmtM(d.payable)+'</div></div>'
+   +'<div class="stat"><div class="lbl">Paid</div><div class="v num">'+fmtM(d.paid)+'</div></div></div>'
+   +'<div class="today"><div class="tdate"><div class="lbl">Today</div><b class="num">'+d.todayTotal+'</b><div class="sm mut">your meals</div></div>'
+   +'<div class="tset">'+d.mealTypes.map(t=>'<div class="tcell"><div class="lbl">'+h(t)+'</div><b class="num">'+(d.todayMeals[t]||0)+'</b></div>').join('')+'</div></div>'
+   +'<div class="sec"><button class="btn btn-p" onclick="location.hash=\'#/meals\'">'+ico('bowl')+'Mark today\u2019s meals</button> '
+   +'<button class="btn" onclick="location.hash=\'#/member?id='+h(S.user.memberId||'')+'\'">'+ico('file')+'My statement</button></div>'
+   +(d.lastPayment?'<div class="sec"><h4>Last payment</h4><div class="tblwrap"><div class="rowline" style="cursor:default"><div class="grow"><b>'+fmtD(d.lastPayment.date)+'</b><div class="sm mut">'+h(d.lastPayment.method||'')+'</div></div><div class="num">'+fmtM(d.lastPayment.amount)+'</div></div></div></div>':'');
+}
+/* ---------- Meals ---------- */
+let ME={};
+async function viewMeals(params){
+  const date=params.get('date')||todayISO();
+  const d=await apiC('meals.get',{date});
+  ME={...d,dirty:false};
+  const readOnly=ME.locked&&S.user.role!=='Admin';
+  const v=$('#view');
+  v.style.setProperty('--mt',ME.mealTypes.length);
+  v.innerHTML='<div class="page-head"><h3>Daily meal entry</h3>'
+   +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+   +'<button class="btn" id="cp">'+ico('copy')+'Copy previous day</button>'
+   +'<button class="btn" id="mall">'+ico('check')+'Mark all</button>'
+   +'<button class="btn btn-s" id="mclr">Clear</button></div></div>'
+   +'<div class="daystrip">'+[...Array(7)].map((_,i)=>{const dd=addDays(date,i-6);const isT=dd===todayISO();
+      return '<div class="dchip'+(dd===date?' on':'')+'" data-d="'+dd+'"><span class="'+(isT?'tod':'')+'">'+(isT?'TODAY':dd.substring(8)+'/'+dd.substring(5,7))+'</span><b class="num">'+dd.substring(0,4)+'</b></div>';}).join('')
+   +'<input type="date" id="dpick" value="'+date+'" style="border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);padding:6px 10px"></div>'
+   +(ME.locked?'<div class="alert">'+ico('alert')+'<span>This month is closed'+(readOnly?' — read only.':' — as admin you can still edit (the month will be marked stale).')+'</span></div>':'')
+   +'<div class="mtotals" id="mtot"></div>'
+   +'<div class="tblwrap" id="mgrid"></div>'
+   +'<div class="savebar"><button class="btn btn-p" id="msave">'+ico('check')+'Save meals</button></div>';
+  function renderTotals(){
+    const tt={}; let tot=0;
+    ME.mealTypes.forEach(t=>{tt[t]=ME.entries.reduce((s,e)=>s+(e.meals[t]||0),0); tot+=tt[t];});
+    $('#mtot').innerHTML=ME.mealTypes.map(t=>'<span class="tt">'+h(t.slice(0,3).toUpperCase())+' '+tt[t]+'</span>').join('')
+      +'<span class="tt t">TOTAL '+tot+'</span><span style="flex:1"></span><span class="sm mut">'+ME.entries.length+' members</span>';
+  }
+  function renderGrid(){
+    $('#mgrid').innerHTML=ME.entries.map((e,i)=>{
+      const tot=ME.mealTypes.reduce((s,t)=>s+(e.meals[t]||0),0);
+      return '<div class="mrow'+(e.absent?' absent':'')+'" data-i="'+i+'">'
+      +'<div class="who"><b>'+h(e.name)+'</b><span class="sm mut">'+h(e.room||'')+(e.status!=='active'?' · '+h(e.status):'')+'</span></div>'
+      +ME.mealTypes.map(t=>'<div class="step"><button data-t="'+t+'" data-d="-1">'+ico('minus')+'</button><span class="n'+((e.meals[t]||0)>0?' hot':'')+'">'+(e.meals[t]||0)+'</span><button data-t="'+t+'" data-d="1">'+ico('plus')+'</button></div>').join('')
+      +'<div class="rtot num">'+tot+'</div>'
+      +'<button class="tog'+(e.absent?' on':'')+'" title="Mark absent">ABS</button></div>';
+    }).join('')||'<p class="sm mut" style="padding:16px">No members to show for this date.</p>';
+    renderTotals();
+    $$('#mgrid .mrow').forEach(row=>{
+      const i=+row.dataset.i;
+      row.querySelectorAll('.step button').forEach(b=>b.onclick=()=>{
+        if(readOnly) return toast('This month is closed','err');
+        const t=b.dataset.t, dd=+b.dataset.d, e=ME.entries[i];
+        e.absent=false; row.classList.remove('absent'); row.querySelector('.tog').classList.remove('on');
+        e.meals[t]=Math.max(0,Math.min(20,(e.meals[t]||0)+dd));
+        updateRow(row,i);
+      });
+      row.querySelector('.tog').onclick=()=>{
+        if(readOnly) return toast('This month is closed','err');
+        const e=ME.entries[i]; e.absent=!e.absent;
+        if(e.absent) ME.mealTypes.forEach(t=>e.meals[t]=0);
+        row.classList.toggle('absent',e.absent); updateRow(row,i);
+      };
+    });
+  }
+  function updateRow(row,i){
+    const e=ME.entries[i];
+    row.querySelectorAll('.step').forEach((st,j)=>{
+      const t=ME.mealTypes[j], val=e.meals[t]||0;
+      st.querySelector('.n').textContent=val;
+      st.querySelector('.n').classList.toggle('hot',val>0);
+    });
+    row.querySelector('.rtot').textContent=ME.mealTypes.reduce((s,t)=>s+(e.meals[t]||0),0);
+    ME.dirty=true; renderTotals();
+  }
+  renderGrid();
+  $$('.dchip').forEach(c=>c.onclick=()=>{ if(ME.dirty&&!confirm('You have unsaved changes. Leave anyway?'))return; location.hash='#/meals?date='+c.dataset.d; });
+  $('#dpick').onchange=e=>{ if(ME.dirty&&!confirm('You have unsaved changes. Leave anyway?'))return; location.hash='#/meals?date='+e.target.value; };
+  $('#mall').onclick=()=>{ if(readOnly)return toast('This month is closed','err');
+    ME.entries.forEach(e=>{ if(e.status==='active'){e.absent=false;ME.mealTypes.forEach(t=>e.meals[t]=1);} }); ME.dirty=true; renderGrid(); };
+  $('#mclr').onclick=()=>{ if(readOnly)return toast('This month is closed','err');
+    ME.entries.forEach(e=>{ME.mealTypes.forEach(t=>e.meals[t]=0);}); ME.dirty=true; renderGrid(); };
+  $('#cp').onclick=async()=>{
+    if(readOnly) return toast('This month is closed','err');
+    if(!await confirmDlg('Copy meal entries from '+fmtD(addDays(date,-1))+' to '+fmtD(date)+'? Existing entries for '+fmtD(date)+' will be overwritten.')) return;
+    try{ await api('meals.copyDay',{from:addDays(date,-1),to:date}); toast('Copied'); viewMeals(new URLSearchParams('date='+date)); }
+    catch(e){ toast(e.msg,'err'); } };
+  $('#msave').onclick=async()=>{
+    if(readOnly) return toast('This month is closed','err');
+    try{
+      const r=await api('meals.save',{date:ME.date,entries:ME.entries.map(e=>({memberId:e.memberId,meals:e.meals,absent:e.absent}))});
+      ME.dirty=false; toast('Meals saved — total '+r.total); viewMeals(new URLSearchParams('date='+ME.date));
+    }catch(e){ toast(e.msg, e.code==='OFFLINE'?'':'err'); } };
+}
+/* ---------- shared list helpers ---------- */
+async function memberNames(){
+  try{ const d=await apiC('members.list',{status:'all'}); CACHE_MEMBERS=d.members; return d.members; }catch(e){ return []; }
+}
+function options(list,valKey,txtKey,sel){ return list.map(x=>'<option value="'+h(x[valKey])+'"'+(String(x[valKey])===String(sel||'')?' selected':'')+'>'+h(x[txtKey])+'</option>').join(''); }
+function monthInput(id,val){ return '<input type="month" id="'+id+'" value="'+(val||monthOf(todayISO()))+'" style="border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);padding:8px 10px">'; }
+/* ---------- Bazar ---------- */
+async function viewBazar(params){
+  const month=params.get('month')||monthOf(todayISO());
+  const cats=(S.settings.BAZAR_CATEGORIES||'Rice,Vegetable,Fish,Meat,Grocery,Spices,Dairy,Fruits,Others').split(',').map(s=>s.trim()).filter(String);
+  const members=await memberNames();
+  const d=await apiC('bazar.list',{month});
+  $('#view').innerHTML='<div class="page-head"><h3>Bazar — '+h(fmtML(month))+'</h3><div style="display:flex;gap:6px;flex-wrap:wrap">'
+   +'<button class="btn btn-p" id="nb">'+ico('plus')+'New bazar</button>'
+   +'<button class="btn" id="pdf">'+ico('file')+'PDF</button></div></div>'
+   +'<div class="mtotals">'+monthInput('bm',month)
+   +'<select id="bbuyer" style="border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);padding:8px 10px"><option value="">All buyers</option>'+options(members,'name','name')+'</select>'
+   +'<select id="bcat" style="border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);padding:8px 10px"><option value="">All categories</option>'+cats.map(c=>'<option>'+h(c)+'</option>').join('')+'</select>'
+   +'<span class="tt t num">TOTAL '+fmtM(d.total)+'</span></div><div id="blist"></div>';
+  $('#bm').onchange=()=>location.hash='#/bazar?month='+$('#bm').value;
+  function renderList(items){
+    const gs={}; items.forEach(it=>{ (gs[it.date]=gs[it.date]||[]).push(it); });
+    $('#blist').innerHTML=Object.keys(gs).sort().reverse().map(date=>{
+      const dayTotal=gs[date].reduce((s,i)=>s+i.total,0);
+      return '<div class="tblwrap" style="margin-bottom:12px"><div class="rowline" style="cursor:default;background:var(--panel2)"><b>'+fmtD(date)+'</b><span class="sm mut">'+gs[date].length+' items · '+h(gs[date][0].buyer)+'</span><div style="flex:1"></div><b class="num">'+fmtM(dayTotal)+'</b></div>'
+      +gs[date].map(it=>'<div class="rowline"><div class="grow"><b>'+h(it.item)+'</b> <span class="sm mut">'+h(it.category)+' · '+h(it.buyer)+'</span><div class="sm mut num">'+h(it.qty)+' '+h(it.unit)+' × '+fmtM(it.unitPrice)+'</div></div>'
+      +'<b class="num">'+fmtM(it.total)+'</b>'
+      +'<button class="iconbtn" data-edit="'+h(it.id)+'">'+ico('edit')+'</button>'
+      +'<button class="iconbtn" style="color:var(--red)" data-del="'+h(it.id)+'">'+ico('trash')+'</button></div>').join('')+'</div>';
+    }).join('')||'<p class="sm mut" style="padding:14px">No bazar entries for this filter.</p>';
+    $$('#blist [data-del]').forEach(b=>b.onclick=async()=>{
+      if(!await confirmDlg('Delete this bazar entry?',true)) return;
+      try{ await api('bazar.delete',{id:b.dataset.del}); toast('Deleted'); viewBazar(params); }catch(e){ toast(e.msg,'err'); }});
+    $$('#blist [data-edit]').forEach(b=>b.onclick=()=>{
+      const it=items.find(x=>x.id===b.dataset.edit); if(!it) return;
+      const w=openModal('Edit bazar item',
+        '<div class="fline"><div class="field"><div class="lbl">Item</div><input id="ei" value="'+h(it.item)+'"></div><div class="field"><div class="lbl">Category</div><input id="ec" value="'+h(it.category)+'"></div></div>'
+        +'<div class="fline"><div class="field"><div class="lbl">Quantity</div><input id="eq" type="number" step="any" value="'+it.qty+'"></div><div class="field"><div class="lbl">Unit price</div><input id="ep" type="number" step="any" value="'+it.unitPrice+'"></div></div>',
+        '<button class="btn btn-p" id="ego">Save</button>');
+      w.querySelector('#ego').onclick=async()=>{
+        try{ await api('bazar.update',{id:it.id,patch:{item:w.querySelector('#ei').value,category:w.querySelector('#ec').value,qty:w.querySelector('#eq').value,unitPrice:w.querySelector('#ep').value}});
+          toast('Updated'); w.remove(); viewBazar(params); }catch(e){ toast(e.msg,'err'); } };
+    });
+  }
+  renderList(d.items);
+  const filter=()=>{ const buyer=$('#bbuyer').value,cat=$('#bcat').value;
+    renderList(d.items.filter(i=>(!buyer||i.buyer===buyer)&&(!cat||i.category===cat))); };
+  $('#bbuyer').onchange=filter; $('#bcat').onchange=filter;
+  $('#pdf').onclick=async()=>{ try{ const r=await api('reports.pdf',{type:'bazar',month}); downloadPdf(r.base64,r.filename); }catch(e){ toast(e.msg,'err'); } };
+  $('#nb').onclick=()=>bazarForm();
+}
+function bazarForm(){
+  const w=openModal('New bazar',
+   '<div class="field"><div class="lbl">Date</div><input type="date" id="zd" value="'+todayISO()+'"></div>'
+   +'<div class="field"><div class="lbl">Buyer</div><input id="zb" list="memlist" placeholder="Who bought"><datalist id="memlist">'+options(CACHE_MEMBERS||[],'name','name')+'</datalist></div>'
+   +'<div class="field"><div class="lbl">Vendor / market (optional)</div><input id="zv"></div>'
+   +'<div class="lbl" style="margin-bottom:6px">Items</div><div class="itemrows" id="zrows"></div>'
+   +'<button class="btn btn-s" id="zadd">'+ico('plus')+'Add item</button>'
+   +'<div class="mtotals" style="margin-top:12px"><span class="tt t num" id="ztotal">TOTAL '+cur()+'0</span></div>',
+   '<button class="btn btn-p" id="zgo">'+ico('check')+'Save bazar</button>');
+  const cats=(S.settings.BAZAR_CATEGORIES||'Rice,Vegetable,Fish,Meat,Grocery,Spices,Dairy,Fruits,Others').split(',').map(s=>s.trim()).filter(String);
+  function total(){ let t=0;
+    w.querySelectorAll('.irow').forEach(r=>{ t+=(+r.querySelector('.zq').value||0)*(+r.querySelector('.zp').value||0); });
+    w.querySelector('#ztotal').textContent='TOTAL '+fmtM(t); return t; }
+  function addRow(){
+    const r=document.createElement('div'); r.className='irow';
+    r.innerHTML='<input placeholder="Item" class="zi"><select class="zc">'+cats.map(c=>'<option>'+h(c)+'</option>').join('')+'</select>'
+     +'<input placeholder="Qty" type="number" step="any" class="zq"><input placeholder="Price" type="number" step="any" class="zp">'
+     +'<button class="iconbtn" style="color:var(--red)">'+ico('trash')+'</button>';
+    r.querySelector('.iconbtn').onclick=()=>{r.remove();total();};
+    ['zq','zp'].forEach(c=>r.querySelector('.'+c).oninput=total);
+    w.querySelector('#zrows').appendChild(r);
+  }
+  addRow();
+  w.querySelector('#zadd').onclick=addRow;
+  w.querySelector('#zgo').onclick=async()=>{
+    const items=[...w.querySelectorAll('.irow')].map(r=>({item:r.querySelector('.zi').value,category:r.querySelector('.zc').value,qty:+r.querySelector('.zq').value||0,unitPrice:+r.querySelector('.zp').value||0,unit:'unit'}))
+      .filter(i=>i.item&&i.qty>0);
+    if(!items.length) return toast('Add at least one item with quantity','err');
+    try{
+      const r=await api('bazar.create',{clientId:uuid(),date:w.querySelector('#zd').value,buyer:w.querySelector('#zb').value,vendor:w.querySelector('#zv').value,items});
+      toast(r.message); w.remove(); renderRoute();
+    }catch(e){ toast(e.msg, e.code==='OFFLINE'?'':'err'); }
+  };
+}
+/* ---------- Expenses ---------- */
+async function viewExpenses(params){
+  const month=params.get('month')||monthOf(todayISO());
+  const d=await apiC('expenses.list',{month});
+  const cats=(S.settings.CATEGORIES||'Rent,Electricity,Gas,Water,Internet,Cleaning,Maintenance,Furniture,Miscellaneous').split(',').map(s=>s.trim()).filter(String);
+  $('#view').innerHTML='<div class="page-head"><h3>Expenses — '+h(fmtML(month))+'</h3><div style="display:flex;gap:6px">'
+   +'<button class="btn btn-p" id="ne">'+ico('plus')+'New expense</button><button class="btn" id="pdf">'+ico('file')+'PDF</button></div></div>'
+   +'<div class="mtotals">'+monthInput('em',month)+'<span class="tt t num">TOTAL '+fmtM(d.total)+'</span></div>'
+   +'<div class="tblwrap"><table class="tbl"><tr><th>Date</th><th>Category</th><th>Description</th><th>Paid by</th><th class="r">Amount</th><th></th></tr>'
+   +d.items.map(x=>'<tr><td>'+fmtD(x.date)+'</td><td><span class="badge off" style="background:var(--panel2);color:var(--ink2)">'+h(x.category)+'</span></td><td>'+h(x.description)+'</td><td>'+h(x.paidBy)+'</td><td class="r"><b>'+fmtM(x.amount)+'</b></td>'
+   +'<td style="white-space:nowrap"><button class="iconbtn" data-e="'+h(x.id)+'">'+ico('edit')+'</button><button class="iconbtn" style="color:var(--red)" data-d="'+h(x.id)+'">'+ico('trash')+'</button></td></tr>').join('')
+   +'</table></div>';
+  $('#em').onchange=()=>location.hash='#/expenses?month='+$('#em').value;
+  $('#pdf').onclick=async()=>{ try{ const r=await api('reports.pdf',{type:'expense',month}); downloadPdf(r.base64,r.filename); }catch(e){ toast(e.msg,'err'); } };
+  const form=x=>{ const w=openModal(x?'Edit expense':'New expense',
+    '<div class="fline"><div class="field"><div class="lbl">Date</div><input type="date" id="xd" value="'+(x?x.date:todayISO())+'"></div>'
+    +'<div class="field"><div class="lbl">Category</div><select id="xc">'+cats.map(c=>'<option'+(x&&x.category===c?' selected':'')+'>'+h(c)+'</option>').join('')+'</select></div></div>'
+    +'<div class="field"><div class="lbl">Description</div><input id="xds" value="'+h(x?x.description:'')+'"></div>'
+    +'<div class="fline"><div class="field"><div class="lbl">Amount</div><input id="xa" type="number" step="any" value="'+(x?x.amount:'')+'"></div><div class="field"><div class="lbl">Paid by</div><input id="xb" value="'+h(x?x.paidBy:'')+'"></div></div>'
+    +'<div class="fline"><div class="field"><div class="lbl">Payment method</div><input id="xm" value="'+h(x?x.method:'')+'"></div><div class="field"><div class="lbl">Reference</div><input id="xr" value="'+h(x?x.reference:'')+'"></div></div>',
+    '<button class="btn btn-p" id="xgo">Save</button>');
+    w.querySelector('#xgo').onclick=async()=>{
+      const payload={date:w.querySelector('#xd').value,category:w.querySelector('#xc').value,description:w.querySelector('#xds').value,amount:w.querySelector('#xa').value,paidBy:w.querySelector('#xb').value,method:w.querySelector('#xm').value,reference:w.querySelector('#xr').value};
+      try{ if(x) await api('expenses.update',{id:x.id,patch:payload}); else await api('expenses.create',{...payload,clientId:uuid()});
+        toast('Saved'); w.remove(); renderRoute(); }catch(e){ toast(e.msg, e.code==='OFFLINE'?'':'err'); } }; };
+  $('#ne').onclick=()=>form(null);
+  $$('#view [data-e]').forEach(b=>b.onclick=()=>form(d.items.find(x=>x.id===b.dataset.e)));
+  $$('#view [data-d]').forEach(b=>b.onclick=async()=>{
+    if(!await confirmDlg('Delete this expense?',true)) return;
+    try{ await api('expenses.delete',{id:b.dataset.d}); toast('Deleted'); renderRoute(); }catch(e){ toast(e.msg,'err'); }});
+}
+/* ---------- Payments ---------- */
+async function viewPayments(params){
+  const month=params.get('month')||monthOf(todayISO());
+  const d=await apiC('payments.list',{month});
+  const members=await memberNames();
+  $('#view').innerHTML='<div class="page-head"><h3>Payments — '+h(fmtML(month))+'</h3><div style="display:flex;gap:6px"><button class="btn btn-p" id="np">'+ico('plus')+'Record payment</button></div></div>'
+   +'<div class="mtotals">'+monthInput('pm',month)+'<span class="tt t num">COLLECTION '+fmtM(d.total)+'</span></div>'
+   +'<div class="tblwrap"><table class="tbl"><tr><th>Date</th><th>Member</th><th>Method / Ref</th><th class="r">Amount</th><th></th></tr>'
+   +d.items.map(x=>'<tr><td>'+fmtD(x.date)+'</td><td><b>'+h(x.memberName)+'</b><div class="sm mut">'+h(x.memberId)+'</div></td><td>'+h(x.method)+'<div class="sm mut">'+h(x.reference)+'</div></td><td class="r"><b>'+fmtM(x.amount)+'</b></td>'
+   +'<td style="white-space:nowrap"><button class="iconbtn" title="Receipt PDF" data-rc="'+h(x.id)+'">'+ico('file')+'</button><button class="iconbtn" title="Email receipt" data-em="'+h(x.id)+'" data-m="'+h(x.memberId)+'">'+ico('mail')+'</button><button class="iconbtn" title="WhatsApp receipt" data-wa="'+h(x.id)+'" data-m="'+h(x.memberId)+'">'+ico('chat')+'</button>'
+   +'<button class="iconbtn" style="color:var(--red)" data-d="'+h(x.id)+'">'+ico('trash')+'</button></td></tr>').join('')
+   +'</table></div>';
+  $('#pm').onchange=()=>location.hash='#/payments?month='+$('#pm').value;
+  $('#np').onclick=()=>{
+    const w=openModal('Record payment',
+     '<div class="fline"><div class="field"><div class="lbl">Date</div><input type="date" id="pd" value="'+todayISO()+'"></div><div class="field"><div class="lbl">Member</div><select id="pmem">'+options(members,'id','name')+'</select></div></div>'
+     +'<div class="field"><div class="lbl">Amount</div><input id="pa" type="number" step="any"></div>'
+     +'<div class="fline"><div class="field"><div class="lbl">Method</div><input id="pme" placeholder="Cash / bKash / Bank"></div><div class="field"><div class="lbl">Reference</div><input id="pr"></div></div>',
+     '<button class="btn btn-p" id="pgo">Save</button>');
+    w.querySelector('#pgo').onclick=async()=>{
+      try{ const r=await api('payments.create',{clientId:uuid(),date:w.querySelector('#pd').value,memberId:w.querySelector('#pmem').value,amount:w.querySelector('#pa').value,method:w.querySelector('#pme').value,reference:w.querySelector('#pr').value});
+        toast(r.message); w.remove(); renderRoute(); }catch(e){ toast(e.msg, e.code==='OFFLINE'?'':'err'); } };
+  };
+  $$('#view [data-rc]').forEach(b=>b.onclick=async()=>{ try{ const r=await api('reports.pdf',{type:'receipt',paymentId:b.dataset.rc}); downloadPdf(r.base64,r.filename); }catch(e){ toast(e.msg,'err'); }});
+  $$('#view [data-em]').forEach(b=>b.onclick=async()=>{
+    try{ await api('email.send',{type:'receipt',memberId:b.dataset.m,paymentId:b.dataset.em}); toast('Receipt emailed'); }catch(e){ toast(e.msg,'err'); }});
+  $$('#view [data-wa]').forEach(b=>b.onclick=()=>sendWaSafe(b.dataset.m,'receipt',{paymentId:b.dataset.wa}));
+  $$('#view [data-d]').forEach(b=>b.onclick=async()=>{
+    if(!await confirmDlg('Delete this payment? Member balance will be recalculated.',true)) return;
+    try{ await api('payments.delete',{id:b.dataset.d}); toast('Deleted'); renderRoute(); }catch(e){ toast(e.msg,'err'); }});
+}
+async function sendWaSafe(memberId,type,extra){
+  if(S.waConfigured){
+    try{ await api('whatsapp.send',{type:type,memberId:memberId,...extra}); toast('Sent via WhatsApp API'); return; }
+    catch(e){ if(e.code!=='WA_NOT_SET'&&e.code!=='FORBIDDEN'){ toast(e.msg,'err'); return; } }
+  }
+  const st=await apiC('members.statement',{memberId:memberId,month:monthOf(todayISO())}).catch(()=>null);
+  const ph=((st&&st.member.mobile)||'').replace(/[^\d]/g,'');
+  if(!ph) return toast('This member has no mobile number','err');
+  const text=type==='bill'? billText(st) : (S.settings.MESS_NAME||'Mess')+' — payment receipt';
+  open('https://wa.me/'+ph+'?text='+encodeURIComponent(text),'_blank');
+}
+function billText(st){
+  return (S.settings.MESS_NAME||'Mess')+' — '+fmtML(st.month)+' bill\nMeals: '+st.meals+' × '+fmtM(st.mealRate)+' = '+fmtM(st.mealCost)
+   +'\nOther charges: '+fmtM(r2l(st.fixed+st.share+st.other))+'\nTotal payable: '+fmtM(st.payable)+'\nPaid: '+fmtM(st.paid)
+   +'\nBalance: '+(st.balance>0?'DUE '+fmtM(st.balance):st.balance<0?'ADVANCE '+fmtM(Math.abs(st.balance)):'PAID');
+}
+/* ---------- Members ---------- */
+async function viewMembers(params){
+  const q=params.get('q')||'', status=params.get('status')||'active';
+  const d=await apiC('members.list',{q:q,status:status});
+  CACHE_MEMBERS=d.members;
+  $('#view').innerHTML='<div class="page-head"><h3>Members</h3><button class="btn btn-p" id="nm">'+ico('plus')+'Add member</button></div>'
+   +'<div class="mtotals"><input id="mq" placeholder="Search name, ID, mobile, room" value="'+h(q)+'" style="flex:1;min-width:180px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);padding:8px 12px">'
+   +['active','inactive','left','all'].map(s=>'<span class="chip'+(status===s?' on':'')+'" data-s="'+s+'">'+s+'</span>').join('')+'</div>'
+   +'<div class="tblwrap">'+(d.members.length?d.members.map(m=>
+     '<div class="rowline" data-m="'+h(m.id)+'"><div class="grow"><b>'+h(m.name)+'</b> <span class="sm mut">'+h(m.id)+' · '+(m.room||'—')+'</span><div class="sm mut">'+h(m.mobile)+'</div></div>'
+     +'<span class="badge '+h(m.status)+'">'+h(m.status)+'</span>'
+     +(m.balance>0?'<span class="badge due num">DUE '+fmtM(m.balance)+'</span>':m.balance<0?'<span class="badge adv num">ADV '+fmtM(Math.abs(m.balance))+'</span>':'<span class="badge ok">CLEAR</span>')
+     +ico('chevR')+'</div>').join(''):'<p class="sm mut" style="padding:16px">No members found.</p>')+'</div>';
+  let tmr; $('#mq').oninput=e=>{ clearTimeout(tmr); tmr=setTimeout(()=>location.hash='#/members?q='+encodeURIComponent(e.target.value)+'&status='+status,450); };
+  $$('.chip').forEach(c=>c.onclick=()=>location.hash='#/members?q='+encodeURIComponent(q)+'&status='+c.dataset.s);
+  $$('#view .rowline[data-m]').forEach(r=>r.onclick=()=>location.hash='#/member?id='+r.dataset.m);
+  $('#nm').onclick=()=>memberForm(null);
+}
+function memberForm(m){
+  const w=openModal(m?'Edit member':'Add member',
+   '<div class="fline"><div class="field"><div class="lbl">Name</div><input id="fn" value="'+h(m?m.name:'')+'"></div><div class="field"><div class="lbl">Mobile</div><input id="fm" value="'+h(m?m.mobile:'')+'"></div></div>'
+   +'<div class="fline"><div class="field"><div class="lbl">Email</div><input id="fe" value="'+h(m?m.email:'')+'"></div><div class="field"><div class="lbl">Gender</div><select id="fg"><option value="">—</option><option'+(m&&m.gender==='M'?' selected':'')+'>M</option><option'+(m&&m.gender==='F'?' selected':'')+'>F</option></select></div></div>'
+   +'<div class="fline"><div class="field"><div class="lbl">Joining date</div><input type="date" id="fj" value="'+(m?m.joining:todayISO())+'"></div><div class="field"><div class="lbl">Leaving date (optional)</div><input type="date" id="fl" value="'+(m?m.leaving:'')+'"></div></div>'
+   +'<div class="fline"><div class="field"><div class="lbl">Room / seat</div><input id="fr" value="'+h(m?m.room:'')+'"></div><div class="field"><div class="lbl">Emergency contact</div><input id="fec" value="'+h(m?m.emergency:'')+'"></div></div>'
+   +'<div class="fline"><div class="field"><div class="lbl">Monthly fixed charges</div><input id="ff" type="number" step="any" value="'+(m?m.fixed:(S.settings.DEFAULT_FIXED_CHARGE||0))+'"></div>'
+   +(m?'':'<div class="field"><div class="lbl">Initial advance (optional)</div><input id="fa" type="number" step="any" value="0"></div>')+'</div>'
+   +'<div class="field"><div class="lbl">Notes</div><input id="fno" value="'+h(m?m.notes:'')+'"></div>',
+   '<button class="btn btn-p" id="fgo">Save</button>');
+  w.querySelector('#fgo').onclick=async()=>{
+    const p={name:w.querySelector('#fn').value,mobile:w.querySelector('#fm').value,email:w.querySelector('#fe').value,gender:w.querySelector('#fg').value,
+      joining:w.querySelector('#fj').value,leaving:w.querySelector('#fl').value,room:w.querySelector('#fr').value,emergency:w.querySelector('#fec').value,
+      fixed:w.querySelector('#ff').value,notes:w.querySelector('#fno').value};
+    try{
+      if(m) await api('members.update',{id:m.id,patch:p});
+      else { p.advance=w.querySelector('#fa').value; await api('members.create',p); }
+      toast('Saved'); w.remove(); renderRoute();
+    }catch(e){ toast(e.msg,'err'); } };
+}
+async function viewMember(params){
+  const id=params.get('id')||S.user.memberId;
+  const month=params.get('month')||monthOf(todayISO());
+  const [info,st]=await Promise.all([apiC('members.get',{id}),apiC('members.statement',{memberId:id,month})]);
+  const m=info.member;
+  let tab='st';
+  const balBadge=m.balance>0?'<span class="badge due num">DUE '+fmtM(m.balance)+'</span>':m.balance<0?'<span class="badge adv num">ADVANCE '+fmtM(Math.abs(m.balance))+'</span>':'<span class="badge ok">CLEAR</span>';
+  $('#view').innerHTML='<div class="card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">'
+   +'<div class="grow"><h3>'+h(m.name)+'</h3><div class="sm mut">'+h(m.id)+' · '+(m.room||'—')+' · '+h(m.mobile)+' · joined '+fmtD(m.joining)+'</div>'
+   +(m.email?'<div class="sm mut">'+h(m.email)+'</div>':'')+'</div>'
+   +'<span class="badge '+h(m.status)+'">'+h(m.status)+'</span>'+balBadge
+   +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+   +(S.user.role!=='Member'?'<button class="btn" id="medit">'+ico('edit')+'Edit</button><button class="btn" id="mst">'+ico('shield')+(m.status==='active'?'Deactivate':'Reactivate')+'</button>':'')+'</div></div>'
+   +'<div class="tabs">'+[['st','Statement'],['ml','Meals'],['pay','Payments']].map(t=>'<div class="tab'+(tab===t[0]?' on':'')+'" data-t="'+t[0]+'">'+t[1]+'</div>').join('')+'</div><div id="mbody"></div>';
+  function renderTab(){
+    $$('#view .tab').forEach(t=>t.classList.toggle('on',t.dataset.t===tab));
+    const b=$('#mbody');
+    if(tab==='st'){
+      b.innerHTML='<div class="page-head" style="margin:6px 0 10px">'+monthInput('stm',month)+'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+      +'<button class="btn" id="spdf">'+ico('file')+'PDF</button><button class="btn" id="spr">'+ico('print')+'Print</button>'
+      +'<button class="btn" id="sem">'+ico('mail')+'Email</button><button class="btn" id="swa">'+ico('chat')+'WhatsApp</button></div></div>'
+      +statementBlock(st);
+      $('#stm').onchange=()=>location.hash='#/member?id='+id+'&month='+$('#stm').value;
+      $('#spdf').onclick=async()=>{ try{ const r=await api('reports.pdf',{type:'statement',memberId:id,month}); downloadPdf(r.base64,r.filename); }catch(e){ toast(e.msg,'err'); }};
+      $('#spr').onclick=()=>printHtml('Statement '+m.name, printableStatement(st));
+      $('#sem').onclick=async()=>{ try{ await api('email.send',{type:'bill',memberId:id,month}); toast('Statement emailed'); }catch(e){ toast(e.msg,'err'); }};
+      $('#swa').onclick=()=>sendWaSafe(id,'bill',{month:month});
+    }
+    if(tab==='ml'){
+      b.innerHTML='<div class="page-head" style="margin:6px 0 10px">'+monthInput('mlm',month)+'</div>'
+      +'<div class="tblwrap"><table class="tbl"><tr><th>Date</th>'+st.mealTypes.map(t=>'<th class="r">'+h(t.slice(0,3))+'</th>').join('')+'<th class="r">Total</th></tr>'
+      +(st.days.map(dd=>'<tr><td>'+fmtD(dd.date)+'</td>'+st.mealTypes.map(t=>'<td class="r">'+dd[t]+'</td>').join('')+'<td class="r"><b>'+(dd.absent?'A':dd.total)+'</b></td></tr>').join('')
+      +'<tr><td><b>Total</b></td>'+st.mealTypes.map(t=>'<td class="r"><b>'+st.days.reduce((s,x)=>s+x[t],0)+'</b></td>').join('')+'<td class="r"><b>'+st.meals+'</b></td></tr>')
+      +'</table></div>';
+      $('#mlm').onchange=()=>location.hash='#/member?id='+id+'&month='+$('#mlm').value;
+    }
+    if(tab==='pay'){
+      b.innerHTML='<div class="page-head" style="margin:6px 0 10px">'+monthInput('pym',month)
+      +(S.user.role!=='Member'?'<button class="btn btn-p" id="padd">'+ico('plus')+'Add payment</button>':'')+'</div>'
+      +'<div class="tblwrap"><table class="tbl"><tr><th>Date</th><th>Method</th><th>Reference</th><th class="r">Amount</th></tr>'
+      +(st.payments.map(p=>'<tr><td>'+fmtD(p.date)+'</td><td>'+h(p.method)+'</td><td>'+h(p.ref)+'</td><td class="r"><b>'+fmtM(p.amount)+'</b></td></tr>').join('')
+      +'<tr><td colspan="3"><b>Total '+fmtML(month)+'</b></td><td class="r"><b>'+fmtM(st.paid)+'</b></td></tr>')+'</table></div>';
+      const mm=$('#pym'); if(mm) mm.onchange=()=>location.hash='#/member?id='+id+'&month='+mm.value;
+      const pa=$('#padd'); if(pa) pa.onclick=async()=>{ const amt=prompt('Payment amount:'); if(!amt) return;
+        try{ const r=await api('payments.create',{clientId:uuid(),date:todayISO(),memberId:id,amount:amt,method:'Cash'});
+        toast(r.message); renderRoute(); }catch(e){ toast(e.msg,'err'); } };
+    }
+  }
+  renderTab();
+  $$('#view .tab').forEach(t=>t.onclick=()=>{tab=t.dataset.t;renderTab();});
+  const me=$('#medit'); if(me) me.onclick=()=>memberForm(m);
+  const ms=$('#mst'); if(ms) ms.onclick=async()=>{
+    const to=m.status==='active'?'inactive':'active';
+    if(!await confirmDlg((to==='inactive'?'Deactivate':'Reactivate')+' '+m.name+'?')) return;
+    try{ await api('members.setStatus',{id:id,status:to}); toast('Member is now '+to); renderRoute(); }catch(e){ toast(e.msg,'err'); } };
+}
+function statementBlock(st){
+  const line=(l,r,b)=>'<div style="display:flex;justify-content:space-between;padding:9px 2px;border-bottom:1px solid var(--line2)"><span class="mut">'+l+'</span><span class="num"'+(b?' style="font-weight:700"':'')+'>'+r+'</span></div>';
+  return '<div class="tblwrap" style="padding:16px">'
+   +'<div class="lbl" style="margin-bottom:4px">'+h(fmtML(st.month))+'</div>'
+   +line('Meals',st.meals+' × '+fmtM(st.mealRate))
+   +line('Meal cost',fmtM(st.mealCost))
+   +line('Fixed charges',fmtM(st.fixed))
+   +line('Expense share',fmtM(st.share))
+   +line('Other charges',fmtM(st.other))
+   +line('Total payable',fmtM(st.payable),1)
+   +line('Opening balance (carried)',fmtM(st.opening))
+   +line('Paid this month',fmtM(st.paid))
+   +line('Balance',st.balance>0?'DUE '+fmtM(st.balance):st.balance<0?'ADVANCE '+fmtM(Math.abs(st.balance)):'PAID',1)
+   +'<div class="sm mut" style="margin-top:8px">Month status: '+h(st.monthStatus)+'</div></div>';
+}
+function printableStatement(st){
+  return '<h2>'+h(S.settings.MESS_NAME||'Mess')+'</h2><p>'+h(S.settings.MESS_ADDRESS||'')+' · '+h(S.settings.MESS_PHONE||'')+'</p>'
+   +'<h3>Statement — '+h(st.member.name)+' ('+h(st.member.id)+') — '+h(fmtML(st.month))+'</h3>'
+   +'<table><tr><td>Meals</td><td>'+st.meals+' × '+fmtM(st.mealRate)+' = '+fmtM(st.mealCost)+'</td></tr>'
+   +'<tr><td>Fixed + share + other</td><td>'+fmtM(r2l(st.fixed+st.share+st.other))+'</td></tr>'
+   +'<tr><td>Total payable</td><td><b>'+fmtM(st.payable)+'</b></td></tr><tr><td>Paid</td><td>'+fmtM(st.paid)+'</td></tr>'
+   +'<tr><td>Balance</td><td><b>'+(st.balance>0?'DUE '+fmtM(st.balance):st.balance<0?'ADVANCE '+fmtM(Math.abs(st.balance)):'PAID')+'</b></td></tr></table>'
+   +'<p>Generated '+new Date().toLocaleString()+'</p>';
+}
+/* ---------- Reports / closing ---------- */
+async function viewReports(params){
+  const month=params.get('month')||monthOf(todayISO());
+  const d=await apiC('accounting.summary',{month});
+  const role=S.user.role;
+  $('#view').innerHTML='<div class="page-head"><h3>Monthly accounting — '+h(fmtML(month))+'</h3><div style="display:flex;gap:6px;flex-wrap:wrap">'
+   +monthInput('rm',month)
+   +'<button class="btn" id="rpdf">'+ico('file')+'PDF summary</button>'
+   +'<button class="btn" id="remail">'+ico('mail')+'Email statements</button>'
+   +'<button class="btn" id="rwa">'+ico('chat')+'WhatsApp statements</button>'
+   +(d.status!=='LOCKED'&&role!=='Member'?'<button class="btn btn-p" id="rclose">'+ico('check')+'Close & lock month</button>':'')
+   +(d.status==='LOCKED'&&role==='Admin'?'<button class="btn btn-d" id="ropen">'+ico('refresh')+'Reopen month</button>':'')
+   +'</div></div>'
+   +'<div class="stats" style="grid-template-columns:repeat(5,1fr)">'
+   +'<div class="stat"><div class="lbl">Method</div><div class="v small">'+h((d.method||'').replace(/_/g,' '))+'</div></div>'
+   +'<div class="stat"><div class="lbl">Total meals</div><div class="v num">'+d.totals.meals+'</div></div>'
+   +'<div class="stat"><div class="lbl">Meal rate</div><div class="v num">'+fmtM(d.totals.mealRate)+'</div></div>'
+   +'<div class="stat"><div class="lbl">Total expense</div><div class="v num">'+fmtM(d.totals.totalExpense)+'</div></div>'
+   +'<div class="stat"><div class="lbl">Collection</div><div class="v num">'+fmtM(d.totals.paid)+'</div></div></div>'
+   +(d.checks?('<div class="mtotals"><span class="sm mut">Checks before closing</span><span class="chip'+(d.checks.missingMealDays?'':' on')+'">Missing meal days: '+d.checks.missingMealDays+'</span><span class="chip'+(d.checks.unpaidMembers?'':' on')+'">Unpaid members: '+d.checks.unpaidMembers+'</span>'+(d.stored?'<span class="badge ok">Closed & locked</span>':'<span class="badge due">Not closed yet (live preview)</span>')+'</div>'):'')
+   +'<div class="tblwrap"><table class="tbl"><tr><th>Member</th><th class="r">Meals</th><th class="r">Rate</th><th class="r">Meal cost</th><th class="r">Fixed</th><th class="r">Share</th><th class="r">Other</th><th class="r">Payable</th><th class="r">Paid</th><th class="r">Opening</th><th class="r">Balance</th></tr>'
+   +d.members.map(x=>'<tr><td><b>'+h(x.name)+'</b><div class="sm mut">'+h(x.room||'')+'</div></td><td class="r">'+x.meals+'</td><td class="r">'+fmtM(x.mealRate)+'</td><td class="r">'+fmtM(x.mealCost)+'</td><td class="r">'+fmtM(x.fixed)+'</td><td class="r">'+fmtM(x.share)+'</td><td class="r">'+fmtM(x.other)+'</td><td class="r"><b>'+fmtM(x.payable)+'</b></td><td class="r">'+fmtM(x.paid)+'</td><td class="r">'+fmtM(x.opening)+'</td><td class="r"><b style="color:'+(x.balance>0?'var(--amber)':x.balance<0?'var(--acc)':'inherit')+'">'+fmtM(x.balance)+'</b></td></tr>').join('')
+   +'<tr><td><b>TOTAL</b></td><td class="r"><b>'+d.totals.meals+'</b></td><td></td><td class="r"><b>'+fmtM(d.totals.mealCost)+'</b></td><td></td><td></td><td></td><td class="r"><b>'+fmtM(d.totals.payable)+'</b></td><td class="r"><b>'+fmtM(d.totals.paid)+'</b></td><td class="r"><b>'+fmtM(d.totals.opening)+'</b></td><td class="r"><b>'+fmtM(d.totals.balance)+'</b></td></tr></table></div>';
+  $('#rm').onchange=()=>location.hash='#/reports?month='+$('#rm').value;
+  $('#rpdf').onclick=async()=>{ try{ const r=await api('reports.pdf',{type:'summary',month}); downloadPdf(r.base64,r.filename); }catch(e){ toast(e.msg,'err'); } };
+  $('#remail').onclick=async()=>{
+    if(!await confirmDlg('Email this months statement to every member who has a bill or balance?')) return;
+    let n=0; for(const x of d.members){ if(Math.abs(x.balance)>0.01||x.payable>0){ try{ await api('email.send',{type:'bill',memberId:x.memberId,month}); n++; }catch(e){} } }
+    toast(n+' statement(s) emailed');
+  };
+  $('#rwa').onclick=async()=>{
+    if(!S.waConfigured) return toast('WhatsApp API not configured. Use the WhatsApp button on a members statement (share-link fallback) instead.');
+    if(!await confirmDlg('Send the monthly bill on WhatsApp to every member?')) return;
+    let n=0; for(const x of d.members){ if(x.balance>0||x.payable>0){ try{ await api('whatsapp.send',{type:'bill',memberId:x.memberId,month}); n++; }catch(e){} } }
+    toast(n+' WhatsApp message(s) sent');
+  };
+  const rc=$('#rclose'); if(rc) rc.onclick=async()=>{
+    const early=(month>=monthOf(todayISO()));
+    if(!await confirmDlg('Close and lock '+fmtML(month)+'?  ·  Missing meal days: '+(d.checks?d.checks.missingMealDays:0)+'  ·  Unpaid members: '+(d.checks?d.checks.unpaidMembers:0)+(early?'  ·  This month is still running, it will be force-closed.':''),true)) return;
+    try{ const r=await api('accounting.close',{month,force:early,send:false}); toast(r.message); viewReports(params); }catch(e){ toast(e.msg,'err'); } };
+  const ro=$('#ropen'); if(ro) ro.onclick=async()=>{
+    if(!await confirmDlg('Reopen '+fmtML(month)+'? Editing becomes possible again. This is recorded in the audit log.',true)) return;
+    try{ const r=await api('accounting.reopen',{month}); toast(r.message); viewReports(params); }catch(e){ toast(e.msg,'err'); } };
+}
+/* ---------- Notifications outbox ---------- */
+async function viewNotifications(){
+  const d=await apiC('notifications.list');
+  $('#view').innerHTML='<div class="page-head"><h3>Notification outbox</h3><button class="btn" id="nrt">'+ico('refresh')+'Retry failed</button></div>'
+   +'<div class="tblwrap"><table class="tbl"><tr><th>Sent at</th><th>Member</th><th>Type</th><th>Channel</th><th>Message</th><th>Status</th></tr>'
+   +d.items.map(x=>'<tr><td class="sm num">'+h(x.sent||'—')+'</td><td>'+h(x.member)+'</td><td>'+h(x.type)+'</td><td>'+h(x.channel)+'</td><td class="sm mut">'+h(x.message)+'</td>'
+   +'<td>'+(x.status==='SENT'?'<span class="badge ok">sent</span>':x.status==='QUEUED'?'<span class="badge off">queued</span>':'<span class="badge due" title="'+h(x.error)+'">failed ×'+x.retries+'</span>')+'</td></tr>').join('')
+   +'</table></div>';
+  $('#nrt').onclick=async()=>{ try{ const r=await api('notifications.retry'); toast(r.message); renderRoute(); }catch(e){ toast(e.msg,'err'); } };
+}
+/* ---------- Audit log ---------- */
+async function viewAudit(params){
+  const mod=params.get('module')||'';
+  const d=await apiC('audit.list',{module:mod});
+  const mods=['','Members','Meals','Bazar','Expenses','Payments','Accounting','Auth','Users','Settings','System','Reports','Email','WhatsApp','Notifications'];
+  $('#view').innerHTML='<div class="page-head"><h3>Audit log (latest entries)</h3><select id="af" style="border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);padding:8px 10px"><option value="">All modules</option>'+mods.filter(Boolean).map(m=>'<option'+(mod===m?' selected':'')+'>'+m+'</option>').join('')+'</select></div>'
+   +'<div class="tblwrap"><table class="tbl"><tr><th>Time</th><th>User</th><th>Action</th><th>Record</th><th>Detail</th><th>Result</th></tr>'
+   +d.entries.map(x=>'<tr><td class="sm num">'+h(x.time)+'</td><td class="sm">'+h(x.user)+'</td><td>'+h(x.action)+'</td><td class="sm mut">'+h(x.record)+'</td><td class="sm mut">'+h(x.detail)+'</td><td>'+(x.result==='OK'?'<span class="badge ok">OK</span>':'<span class="badge off">'+h(x.result)+'</span>')+'</td></tr>').join('')
+   +'</table></div>';
+  $('#af').onchange=()=>location.hash='#/audit?module='+$('#af').value;
+}
+/* ---------- Users & roles ---------- */
+async function viewUsers(){
+  const d=await apiC('users.list');
+  const members=CACHE_MEMBERS||await memberNames();
+  $('#view').innerHTML='<div class="page-head"><h3>Users & roles</h3><button class="btn btn-p" id="nu">'+ico('plus')+'Add user</button></div>'
+   +'<div class="tblwrap"><table class="tbl"><tr><th>Name</th><th>Email</th><th>Role</th><th>Linked member</th><th>Last login</th><th>Status</th><th></th></tr>'
+   +d.users.map(u=>'<tr><td><b>'+h(u.name)+'</b></td><td class="sm">'+h(u.email)+'</td><td><span class="badge off" style="background:var(--panel2);color:var(--ink2)">'+h(u.role)+'</span></td><td class="sm mut">'+h(u.memberId||'—')+'</td><td class="sm mut">'+h(u.lastLogin||'never')+'</td>'
+   +'<td>'+(u.status==='active'?'<span class="badge ok">active</span>':'<span class="badge off">disabled</span>')+'</td>'
+   +'<td style="white-space:nowrap"><button class="iconbtn" data-e="'+h(u.id)+'">'+ico('edit')+'</button><button class="iconbtn" data-s="'+h(u.id)+'">'+ico('shield')+'</button></td></tr>').join('')
+   +'</table></div>';
+  $('#nu').onclick=()=>userForm(null,members);
+  $$('#view [data-e]').forEach(b=>b.onclick=()=>userForm(d.users.find(u=>u.id===b.dataset.e),members));
+  $$('#view [data-s]').forEach(b=>b.onclick=async()=>{
+    const u=d.users.find(x=>x.id===b.dataset.s);
+    const to=u.status==='active'?'disabled':'active';
+    if(!await confirmDlg((to==='disabled'?'Disable':'Enable')+' the login of '+u.name+'?',true)) return;
+    try{ await api('users.update',{id:u.id,patch:{status:to}}); toast('Done'); renderRoute(); }catch(e){ toast(e.msg,'err'); } });
+}
+function userForm(u,members){
+  const w=openModal(u?'Edit user':'Add user',
+   '<div class="field"><div class="lbl">Name</div><input id="un" value="'+h(u?u.name:'')+'"></div>'
+   +'<div class="field"><div class="lbl">Email (this is the login)</div><input id="ue" type="email" value="'+h(u?u.email:'')+'"'+(u?' disabled':'')+'></div>'
+   +'<div class="fline"><div class="field"><div class="lbl">Role</div><select id="ur">'+['Admin','Manager','Accountant','Member'].map(r=>'<option'+(u&&u.role===r?' selected':'')+'>'+r+'</option>').join('')+'</select></div>'
+   +'<div class="field"><div class="lbl">Member (needed for Member role)</div><select id="um"><option value="">—</option>'+options(members,'id','name',u?u.memberId:'')+'</select></div></div>'
+   +(u?'':'<div class="field"><div class="lbl">Password (min 6 characters)</div><input id="up" type="password"></div>'),
+   '<button class="btn btn-p" id="ugo">Save</button>');
+  w.querySelector('#ugo').onclick=async()=>{
+    try{
+      if(u) await api('users.update',{id:u.id,patch:{name:w.querySelector('#un').value,role:w.querySelector('#ur').value,memberId:w.querySelector('#um').value}});
+      else await api('users.create',{name:w.querySelector('#un').value,email:w.querySelector('#ue').value,password:w.querySelector('#up').value,role:w.querySelector('#ur').value,memberId:w.querySelector('#um').value});
+      toast('Saved'); w.remove(); renderRoute();
+    }catch(e){ toast(e.msg,'err'); }
+  };
+}
+/* ---------- Settings ---------- */
+async function viewSettings(){
+  const gs=await apiC('settings.get');
+  S.settings={...S.settings,...gs.settings}; S.waConfigured=!!gs.waConfigured; persist();
+  const s=S.settings;
+  let tab='mess';
+  $('#view').innerHTML='<div class="page-head"><h3>Settings</h3><span class="sm mut">'+(S.waConfigured?'WhatsApp API active':'WhatsApp API not set — using share-link fallback')+'</span></div>'
+   +'<div class="tabs">'+[['mess','Mess'],['acct','Accounting'],['notif','Notifications'],['email','Email'],['wa','WhatsApp'],['pwa','PWA'],['backup','Backup'],['system','System']].map(t=>'<div class="tab" data-t="'+t[0]+'">'+t[1]+'</div>').join('')+'</div><div id="sbody"></div>';
+  const G=(id,lbl,val,ph,type)=>'<div class="field"><div class="lbl" style="margin-bottom:5px">'+lbl+'</div><input id="'+id+'" type="'+(type||'text')+'" placeholder="'+h(ph||'')+'" value="'+h(val==null?'':val)+'"></div>';
+  const swtch=(k,lbl,on)=>'<div class="switch">'+lbl+'<div class="sw'+(on?' on':'')+'" data-k="'+k+'"></div></div>';
+  function render(){
+    $$('#view .tab').forEach(t=>t.classList.toggle('on',t.dataset.t===tab));
+    const b=$('#sbody');
+    if(tab==='mess') b.innerHTML='<div class="card">'+G('s_name','Mess name',s.MESS_NAME)+G('s_addr','Address',s.MESS_ADDRESS)+G('s_phone','Contact number',s.MESS_PHONE)+G('s_email','Mess email',s.MESS_EMAIL)+G('s_cur','Currency symbol',s.CURRENCY)+G('s_tz','Timezone (e.g. Asia/Dhaka)',s.TIMEZONE)+'<button class="btn btn-p" id="sv">Save</button></div>';
+    if(tab==='acct') b.innerHTML='<div class="card">'
+     +'<div class="field"><div class="lbl">Calculation method</div><select id="s_calc">'+Object.entries({meals_only_equal:'Meal rate = Bazar / Meals, other expenses split equally',meals_plus_fixed:'Meal rate = Bazar / Meals, other expenses from fixed charges',all_inclusive:'Meal rate = (Bazar + other expenses) / Meals'}).map(x=>'<option value="'+x[0]+'"'+(s.CALC_METHOD===x[0]?' selected':'')+'>'+x[1]+'</option>').join('')+'</select></div>'
+     +G('s_fixed','Default fixed charge per member',s.DEFAULT_FIXED_CHARGE)+G('s_svc','Service charge % on meal cost',s.SERVICE_CHARGE_PCT)+G('s_close','Month closing day (1–28)',s.CLOSING_DAY)
+     +G('s_types','Meal types, comma separated',s.MEAL_TYPES)
+     +'<div class="fline">'+G('s_cats','Expense categories',s.CATEGORIES)+G('s_bcats','Bazar categories',s.BAZAR_CATEGORIES)+'</div>'
+     +'<button class="btn btn-p" id="sv">Save</button></div>';
+    if(tab==='notif') b.innerHTML='<div class="card">'
+     +swtch('EMAIL_ENABLED','Email notifications (bills, receipts, reminders)',s.EMAIL_ENABLED==='true')
+     +swtch('WHATSAPP_ENABLED','Use WhatsApp API (when configured)',s.WHATSAPP_ENABLED==='true')
+     +'<div style="height:14px"></div><div class="lbl" style="margin-bottom:6px">Automation (time triggers)</div>'
+     +swtch('AUTO_MORNING','Morning meal reminder (daily ~8:00)',s.AUTO_MORNING==='true')
+     +swtch('AUTO_EVENING','Evening meal-entry reminder to managers (~21:00)',s.AUTO_EVENING==='true')
+     +swtch('AUTO_DUE_REMINDER','Due balance reminder (from configured day)',s.AUTO_DUE_REMINDER==='true')
+     +swtch('AUTO_MONTH_CLOSE','Auto close previous month on closing day',s.AUTO_MONTH_CLOSE==='true')
+     +swtch('AUTO_BACKUP','Weekly backup to Drive (Sunday ~6:00)',s.AUTO_BACKUP==='true')
+     +G('s_drday','Due reminder day of month',s.DUE_REMINDER_DAY||'25')
+     +'<div class="sm mut" style="margin:8px 0">After changing automation, install triggers once from the System tab.</div>'
+     +'<button class="btn btn-p" id="sv">Save</button></div>';
+    if(tab==='email') b.innerHTML='<div class="card"><p class="sm mut" style="margin-bottom:10px">Placeholders: {{name}} {{month}} {{meals}} {{rate}} {{meal_cost}} {{other}} {{total}} {{paid}} {{balance}} {{amount}} {{date}} {{method}} {{mess_name}}</p>'
+     +G('s_subj','Bill email subject',s.TPL_SUBJECT_BILL)
+     +'<div class="field"><div class="lbl">Bill message</div><textarea id="s_bill">'+h(s.TPL_BILL)+'</textarea></div>'
+     +'<div class="field"><div class="lbl">Payment receipt</div><textarea id="s_rcpt">'+h(s.TPL_RECEIPT)+'</textarea></div>'
+     +'<div class="field"><div class="lbl">Due reminder</div><textarea id="s_rem">'+h(s.TPL_REMINDER)+'</textarea></div>'
+     +'<div class="field"><div class="lbl">Meal reminder</div><textarea id="s_meal">'+h(s.TPL_MEAL)+'</textarea></div>'
+     +'<button class="btn btn-p" id="sv">Save</button> <button class="btn" id="stest">Send test email to me</button></div>';
+    if(tab==='wa') b.innerHTML='<div class="card">'
+     +'<div class="field"><div class="lbl">Provider</div><select id="w_prov"><option value="none"'+(s.WA_PROVIDER==='none'?' selected':'')+'>Disabled (share-link fallback)</option><option value="generic"'+(s.WA_PROVIDER!=='none'?' selected':'')+'>Generic JSON API</option></select></div>'
+     +G('w_url','API URL',s.WA_API_URL)+G('w_sender','Sender number',s.WA_SENDER)+G('w_cc','Country code',s.WA_COUNTRY_CODE)
+     +'<div class="field"><div class="lbl">API key '+(s.WA_API_KEY_SET?'<span class="badge ok">configured</span>':'')+'</div><input id="w_key" type="password" placeholder="'+(s.WA_API_KEY_SET?'leave blank to keep current key':'paste key here')+'"></div>'
+     +'<p class="sm mut" style="margin:8px 0;line-height:1.5">The key is stored only inside Apps Script and never sent to the browser. Expected request: POST to the URL with header "Authorization: Bearer KEY" and body {"from","to","type":"text","text"}. If your provider uses a different format, adapt the single function sendWhatsAppMessage_ in WhatsAppService.gs.</p>'
+     +G('w_to','Test phone number','','017XXXXXXXX')
+     +'<button class="btn btn-p" id="svwa">Save</button> <button class="btn" id="wtest">Send test message</button></div>';
+    if(tab==='pwa') b.innerHTML='<div class="card">'+G('s_app','App name (titles, PDFs)',s.APP_NAME)+G('s_short','Short name',s.APP_SHORT_NAME)
+     +'<p class="sm mut" style="margin:8px 0">The install icon and launcher name come from manifest.json on your static host — edit that file to change them.</p>'
+     +'<button class="btn btn-p" id="sv">Save</button> <button class="btn" id="inst">'+ico('download')+'Install app</button></div>';
+    if(tab==='backup') b.innerHTML='<div class="card"><p class="sm mut" style="margin-bottom:10px">Each backup is a full copy of the spreadsheet, stored in a Drive folder called "Mess Backups". The main database is never touched.</p>'
+     +'<button class="btn btn-p" id="bk">'+ico('download')+'Backup now</button><div id="bklist" style="margin-top:12px"></div></div>';
+    if(tab==='system') b.innerHTML='<div class="card"><div class="lbl" style="margin-bottom:8px">Automation triggers</div><div id="trig" class="sm mut" style="margin-bottom:10px">Loading…</div>'
+     +'<button class="btn btn-p" id="tri">'+ico('check')+'Install / refresh triggers</button> <button class="btn btn-d" id="trc">Remove all triggers</button>'
+     +'<div style="height:18px"></div><div class="lbl" style="margin-bottom:8px">Danger zone</div>'
+     +'<button class="btn btn-d" id="wipe">Delete demo data</button>'
+     +'<div class="sm mut" style="margin-top:14px"><a href="#/audit" style="color:var(--acc)">Open audit log</a></div></div>';
+    bind();
+  }
+  function bind(){
+    $$('#sbody .sw').forEach(x=>x.onclick=()=>x.classList.toggle('on'));
+    const val=id=>{const el=$('#'+id); return el?el.value:undefined;};
+    const sv=$('#sbody #sv'); if(sv) sv.onclick=async()=>{
+      const set={};
+      if(tab==='mess') Object.assign(set,{MESS_NAME:val('s_name'),MESS_ADDRESS:val('s_addr'),MESS_PHONE:val('s_phone'),MESS_EMAIL:val('s_email'),CURRENCY:val('s_cur'),TIMEZONE:val('s_tz')});
+      if(tab==='acct') Object.assign(set,{CALC_METHOD:val('s_calc'),DEFAULT_FIXED_CHARGE:val('s_fixed'),SERVICE_CHARGE_PCT:val('s_svc'),CLOSING_DAY:val('s_close'),MEAL_TYPES:val('s_types'),CATEGORIES:val('s_cats'),BAZAR_CATEGORIES:val('s_bcats')});
+      if(tab==='notif'){ $$('#sbody .sw').forEach(x=>set[x.dataset.k]=x.classList.contains('on')?'true':'false'); set.DUE_REMINDER_DAY=val('s_drday'); }
+      if(tab==='email') Object.assign(set,{TPL_SUBJECT_BILL:val('s_subj'),TPL_BILL:val('s_bill'),TPL_RECEIPT:val('s_rcpt'),TPL_REMINDER:val('s_rem'),TPL_MEAL:val('s_meal')});
+      if(tab==='pwa') Object.assign(set,{APP_NAME:val('s_app'),APP_SHORT_NAME:val('s_short')});
+      try{ const r=await api('settings.update',{settings:set}); S.settings={...S.settings,...r.data.settings}; S.waConfigured=!!r.data.waConfigured; persist(); toast(r.message); }
+      catch(e){ toast(e.msg,'err'); }
+    };
+    const stest=$('#sbody #stest'); if(stest) stest.onclick=async()=>{
+      try{ await api('email.send',{type:'summary',month:monthOf(todayISO())}); toast('Test email sent to your address'); }catch(e){ toast(e.msg,'err'); } };
+    const svwa=$('#sbody #svwa'); if(svwa) svwa.onclick=async()=>{
+      const wa={provider:$('#w_prov').value,url:$('#w_url').value,sender:$('#w_sender').value};
+      if($('#w_key').value) wa.apiKey=$('#w_key').value;
+      try{ const r=await api('settings.update',{settings:{WA_COUNTRY_CODE:$('#w_cc').value},wa:wa});
+        S.settings={...S.settings,...r.data.settings}; S.waConfigured=!!r.data.waConfigured; persist(); toast(r.message); }
+      catch(e){ toast(e.msg,'err'); } };
+    const wtest=$('#sbody #wtest'); if(wtest) wtest.onclick=async()=>{
+      try{ const r=await api('whatsapp.test',{to:val('w_to')}); toast(r.message); }catch(e){ toast(e.msg,'err'); } };
+    const inst=$('#sbody #inst'); if(inst) inst.onclick=promptInstall;
+    const bk=$('#sbody #bk'); if(bk) bk.onclick=async()=>{ try{ const r=await api('backup.run'); toast(r.message); loadBackups(); }catch(e){ toast(e.msg,'err'); } };
+    const tri=$('#sbody #tri'); if(tri) tri.onclick=async()=>{ try{ const r=await api('triggers.setup'); toast(r.message); loadTriggers(); }catch(e){ toast(e.msg,'err'); } };
+    const trc=$('#sbody #trc'); if(trc) trc.onclick=async()=>{ if(!await confirmDlg('Remove all automation triggers?',true))return;
+      try{ const r=await api('triggers.clear'); toast(r.message); loadTriggers(); }catch(e){ toast(e.msg,'err'); } };
+    const wipe=$('#sbody #wipe'); if(wipe) wipe.onclick=async()=>{
+      if(!await confirmDlg('Delete all records that came from the demo data loader? Real records are untouched.',true)) return;
+      try{ const r=await api('setup.wipeDemo'); toast(r.message); }catch(e){ toast(e.msg,'err'); } };
+    if(tab==='backup') loadBackups();
+    if(tab==='system') loadTriggers();
+  }
+  async function loadBackups(){ try{ const d=await apiC('backup.list');
+    $('#bklist').innerHTML=d.backups.map(b=>'<div class="rowline"><div class="grow"><b class="sm">'+h(b.name)+'</b><div class="sm mut">'+h(b.date)+'</div></div><a class="btn btn-s" target="_blank" href="'+h(b.url)+'">Open</a></div>').join('')||'<p class="sm mut">No backups yet.</p>'; }catch(e){} }
+  async function loadTriggers(){ try{ const d=await apiC('triggers.status');
+    $('#trig').innerHTML=d.triggers.length? d.triggers.map(t=>h(t.handler)+' ('+h(t.type)+')').join('<br>') : 'No triggers installed. Automation stays off until you install them.'; }catch(e){ $('#trig').textContent='Could not load trigger status.'; } }
+  render();
+  $$('#view .tab').forEach(t=>t.onclick=()=>{tab=t.dataset.t;render();});
+}
+/* ---------- More ---------- */
+function viewMore(){
+  const role=S.user.role;
+  const items=[
+    (role!=='Member'?{id:'payments',t:'Payments',i:'scale'}:null),
+    (role!=='Member'?{id:'expenses',t:'Expenses',i:'wallet'}:null),
+    (role!=='Member'?{id:'reports',t:'Reports & month closing',i:'file'}:null),
+    (role==='Admin'||role==='Manager'?{id:'notifications',t:'Notification outbox',i:'bell'}:null),
+    (role==='Admin'?{id:'audit',t:'Audit log',i:'book'}:null),
+    (role==='Admin'?{id:'users',t:'Users & roles',i:'shield'}:null),
+    {id:'settings',t:'Settings',i:'edit'},
+    {id:'search',t:'Search',i:'search'}
+  ].filter(Boolean);
+  $('#view').innerHTML='<div class="page-head"><h3>More</h3><span class="sm mut">'+h(S.user.name)+' · '+h(role)+'</span></div>'
+   +'<div class="tblwrap">'+items.map(x=>'<div class="rowline" data-go="'+x.id+'">'+ico(x.i)+'<div class="grow"><b>'+x.t+'</b></div>'+ico('chevR')+'</div>').join('')
+   +'<div class="rowline" id="moTheme">'+ico(localStorage.getItem(LS.theme)==='dark'?'sun':'moon')+'<div class="grow"><b>Toggle light / dark</b></div></div>'
+   +'<div class="rowline" id="moInstall">'+ico('download')+'<div class="grow"><b>Install app</b></div></div>'
+   +'<div class="rowline" id="moSync">'+ico('refresh')+'<div class="grow"><b>Sync pending changes</b><div class="sm mut">'+getQueue().length+' queued</div></div></div>'
+   +'<div class="rowline" id="moOut" style="color:var(--red)">'+ico('logout')+'<div class="grow"><b>Sign out</b></div></div></div>';
+  $$('#view [data-go]').forEach(r=>r.onclick=()=>location.hash='#/'+r.dataset.go);
+  $('#moTheme').onclick=()=>{toggleTheme();viewMore();};
+  $('#moInstall').onclick=promptInstall;
+  $('#moSync').onclick=async()=>{ await flushQueue(); toast(getQueue().length?'Still pending: '+getQueue().length:'Everything is synced'); viewMore(); };
+  $('#moOut').onclick=()=>doLogout(true);
+}
+/* ---------- Search ---------- */
+async function viewSearch(params){
+  const q=params.get('q')||'';
+  $('#view').innerHTML='<div class="page-head"><h3>Search</h3></div>'
+   +'<div class="field"><input id="sq" placeholder="Member, mobile, ID, item, expense, payment, reference…" value="'+h(q)+'"></div><div id="sres"></div>';
+  $('#sq').focus();
+  let tmr; $('#sq').oninput=e=>{clearTimeout(tmr);tmr=setTimeout(()=>{history.replaceState(null,'','#/search?q='+encodeURIComponent(e.target.value));doSearch(e.target.value);},400);};
+  if(q) doSearch(q);
+  async function doSearch(qq){
+    if(qq.trim().length<2){ $('#sres').innerHTML=''; return; }
+    let d; try{ d=await apiC('search.query',{q:qq}); }catch(e){ $('#sres').innerHTML='<p class="sm mut" style="padding:12px">'+h(e.msg)+'</p>'; return; }
+    $('#sres').innerHTML=d.groups.map(g=>'<div class="sec"><h4>'+h(g.label)+'</h4><div class="tblwrap">'
+      +g.items.map(it=>'<div class="rowline" data-mod="'+h(g.module)+'" data-id="'+h(it.id)+'"><div class="grow"><b>'+h(it.title)+'</b><div class="sm mut">'+h(it.sub)+'</div></div>'+ico('chevR')+'</div>').join('')
+      +'</div></div>').join('')||'<p class="sm mut" style="padding:14px">No results.</p>';
+    $$('#sres .rowline').forEach(r=>r.onclick=()=>{
+      if(r.dataset.mod==='member') location.hash='#/member?id='+r.dataset.id;
+      else if(r.dataset.mod==='payment') location.hash='#/payments';
+      else if(r.dataset.mod==='bazar') location.hash='#/bazar';
+      else location.hash='#/expenses';
+    });
+  }
+}
+/* ---------- PWA ---------- */
+function registerSW(){
+  if(!('serviceWorker' in navigator)||!location.protocol.startsWith('http')) return;
+  navigator.serviceWorker.register('sw.js').then(reg=>{
+    reg.addEventListener('updatefound',()=>{ const nw=reg.installing; if(!nw)return;
+      nw.addEventListener('statechange',()=>{ if(nw.state==='installed'&&navigator.serviceWorker.controller){
+        toast('A new version is ready','',{label:'Update',cb:()=>nw.postMessage({type:'SKIP_WAITING'})}); } }); });
+  }).catch(()=>{});
+  let refreshing=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(!refreshing){refreshing=true;location.reload();} });
+}
+function promptInstall(){
+  if(S.installEvt){ S.installEvt.prompt(); S.installEvt=null; }
+  else toast('To install: open your browser menu and choose "Install app" / "Add to Home screen".');
+}
+addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); S.installEvt=e; });
+addEventListener('appinstalled',()=>toast('App installed'));
+/* ---------- go ---------- */
+init();
+</script>
+</body>
+</html>
