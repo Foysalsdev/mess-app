@@ -14,19 +14,23 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}
-:root{--bg:#F4F1E9;--panel:#FDFCF8;--panel2:#F6F3EA;--ink:#20281F;--ink2:#5C6657;--mut:#8B937F;--line:#E2DCCB;--line2:#EDE8DA;
+:root{color-scheme:light;--bg:#F4F1E9;--panel:#FDFCF8;--panel2:#F6F3EA;--ink:#20281F;--ink2:#5C6657;--mut:#8B937F;--line:#E2DCCB;--line2:#EDE8DA;
 --acc:#1F6B4F;--acc2:#2E8B68;--accSoft:#E3EEE7;--amber:#A66A1F;--amberSoft:#F5EAD5;--red:#B23B2E;--redSoft:#F6E2DE;
 --shadow:0 1px 2px rgba(32,40,31,.05),0 10px 26px -14px rgba(32,40,31,.22);--r:14px;--font:'Sora',ui-sans-serif,system-ui,sans-serif}
-[data-theme=dark]{--bg:#141812;--panel:#1B211A;--panel2:#171D16;--ink:#EAE6D8;--ink2:#A9B09B;--mut:#7C8471;--line:#2A3226;--line2:#232A1F;
+[data-theme=dark]{color-scheme:dark;--bg:#141812;--panel:#1B211A;--panel2:#171D16;--ink:#EAE6D8;--ink2:#A9B09B;--mut:#7C8471;--line:#2A3226;--line2:#232A1F;
 --acc:#5FBB93;--acc2:#7CCAA8;--accSoft:#1F332A;--amber:#D9A05B;--amberSoft:#33291A;--red:#E0796C;--redSoft:#3A2320;
 --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 26px -14px rgba(0,0,0,.5)}
 html{font-size:15px}
 body{font-family:var(--font);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;min-height:100vh}
+select,input,textarea,button{font-family:var(--font)}
 a{color:inherit}
 h1,h2,h3{letter-spacing:-.015em}
 .num{font-variant-numeric:tabular-nums}
 .mut{color:var(--mut)}.sm{font-size:.78rem}
 .lbl{font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--mut);font-weight:600}
+@keyframes fadein{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+#view>*{animation:fadein .2s ease}
+.toast{animation:fadein .18s ease}
 #boot{min-height:100vh;display:grid;place-items:center;padding:20px}
 .center{max-width:420px;width:100%}
 .logo{display:flex;align-items:center;gap:12px;margin-bottom:18px}
@@ -37,13 +41,15 @@ h1,h2,h3{letter-spacing:-.015em}
 .field input,.field select,.field textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--ink);font:inherit;font-size:.92rem}
 .field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--acc2);outline-offset:-1px}
 .field textarea{min-height:90px;resize:vertical;font-size:.84rem}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 16px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-weight:600;font-size:.88rem;cursor:pointer;transition:filter .12s}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 16px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-weight:600;font-size:.88rem;cursor:pointer;transition:filter .12s,transform .05s}
 .btn:hover{filter:brightness(.97)}
+.btn:active{transform:translateY(1px)}
 .btn-p{background:var(--acc);color:#fff;border-color:var(--acc)}
 .btn-s{background:transparent;border-color:transparent;color:var(--ink2)}
 .btn-d{background:transparent;color:var(--red);border-color:var(--red)}
-.btn:disabled{opacity:.5;cursor:default}
+.btn:disabled{opacity:.45;cursor:default}
 .btn svg{width:16px;height:16px}
+.btn:focus-visible,.iconbtn:focus-visible,.chip:focus-visible{outline:2px solid var(--acc2);outline-offset:2px}
 .chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:var(--panel);font-size:.76rem;font-weight:600;color:var(--ink2);cursor:pointer}
 .chip.on{background:var(--accSoft);border-color:var(--acc2);color:var(--acc)}
 .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:.68rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
@@ -63,13 +69,13 @@ h1,h2,h3{letter-spacing:-.015em}
 .sgroup{margin:14px 8px 6px}
 #mainwrap{flex:1;margin-left:246px;display:flex;flex-direction:column;min-height:100vh}
 #topbar{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:12px 22px;z-index:20}
-#topbar h2{font-size:1.02rem;margin-right:auto}
-.iconbtn{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink2);cursor:pointer}
+#topbar h2{font-size:1.02rem;margin-right:auto;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iconbtn{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink2);cursor:pointer;flex-shrink:0}
 .iconbtn svg{width:17px;height:17px}
-#dot{width:9px;height:9px;border-radius:50%;background:var(--acc)}
+#dot{width:9px;height:9px;border-radius:50%;background:var(--acc);flex-shrink:0}
 #dot.off{background:var(--red)}
 #qbadge{display:none;background:var(--amber);color:#fff;border-radius:999px;font-size:.6rem;padding:1px 6px;font-weight:700}
-#view{padding:22px;max-width:1080px;width:100%;margin:0 auto;padding-bottom:100px}
+#view{padding:22px;max-width:1160px;width:100%;margin:0 auto;padding-bottom:100px}
 .page-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:16px}
 .page-head h3{font-size:1.05rem}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:var(--r);background:var(--panel);overflow:hidden;box-shadow:var(--shadow)}
@@ -93,18 +99,22 @@ table.tbl{width:100%;border-collapse:collapse;font-size:.83rem}
 .tbl td{padding:10px 12px;border-bottom:1px solid var(--line2);vertical-align:middle}
 .tbl tr:last-child td{border-bottom:0}
 .tbl td.r,.tbl th.r{text-align:right;font-variant-numeric:tabular-nums}
+.empty{text-align:center;padding:28px 14px;color:var(--mut);font-size:.85rem}
 .rowline{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line2);cursor:pointer}
 .rowline:hover{background:var(--panel2)}
 .rowline:last-child{border-bottom:0}
 .rowline .grow{flex:1;min-width:0}
 .daystrip{display:flex;gap:7px;overflow-x:auto;padding:2px 0 10px}
 .dchip{min-width:64px;text-align:center;padding:7px 9px;border:1px solid var(--line);border-radius:12px;background:var(--panel);cursor:pointer;flex-shrink:0}
-.dchip b{display:block;font-size:1.02rem;font-variant-numeric:tabular-nums}
+.dchip span{display:block;font-size:.6rem;font-weight:600;color:var(--mut);margin-bottom:2px}
+.dchip b{display:block;font-size:1.05rem;font-variant-numeric:tabular-nums}
 .dchip.on{background:var(--accSoft);border-color:var(--acc2)}
 .dchip .tod{color:var(--acc);font-weight:700}
 .mrow{display:grid;grid-template-columns:minmax(130px,1fr) repeat(var(--mt,3),86px) 46px 58px;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--line2)}
 .mrow.absent{opacity:.45}
-.mrow .who b{font-size:.88rem;display:block}
+.mrow .who{min-width:0}
+.mrow .who b,.mrow .who span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrow .who b{font-size:.88rem}
 .step{display:flex;align-items:center;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--panel2)}
 .step button{width:32px;height:32px;background:none;border:0;color:var(--ink2);cursor:pointer;font-size:1.1rem;line-height:1}
 .step .n{min-width:24px;text-align:center;font-weight:600;font-variant-numeric:tabular-nums;font-size:.9rem}
@@ -124,7 +134,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:.83rem}
 .mwrap{position:fixed;inset:0;z-index:60;display:grid;place-items:end center}
 @media(min-width:700px){.mwrap{place-items:center}}
 .mback{position:absolute;inset:0;background:rgba(15,20,14,.55)}
-.modal{position:relative;width:100%;max-width:520px;max-height:92vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:16px 16px 0 0;box-shadow:var(--shadow)}
+.modal{position:relative;width:100%;max-width:560px;max-height:92vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:16px 16px 0 0;box-shadow:var(--shadow)}
 @media(min-width:700px){.modal{border-radius:16px}}
 .mhead{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line2);position:sticky;top:0;background:var(--panel)}
 .mbody{padding:18px}
@@ -135,16 +145,18 @@ table.tbl{width:100%;border-collapse:collapse;font-size:.83rem}
 .toast button{background:none;border:0;color:inherit;font:inherit;font-weight:700;cursor:pointer;text-decoration:underline}
 #ob{position:fixed;top:0;left:0;right:0;z-index:70;background:var(--amber);color:#fff;text-align:center;font-size:.78rem;font-weight:600;padding:6px}
 #bnav{display:none}
-#bnav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px 5px;font-size:.6rem;font-weight:600;color:var(--ink2);text-decoration:none}
+#bnav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px 5px;font-size:.6rem;font-weight:600;color:var(--ink2);text-decoration:none;border-radius:12px}
 #bnav a svg{width:20px;height:20px}
-#bnav a.on{color:var(--acc)}
+#bnav a.on{color:var(--acc);background:var(--accSoft)}
 .fab{position:fixed;right:18px;bottom:92px;width:54px;height:54px;border-radius:16px;background:var(--acc);color:#fff;border:0;box-shadow:0 12px 28px -8px rgba(31,107,79,.55);cursor:pointer;display:grid;place-items:center;z-index:35}
 .fab svg{width:22px;height:22px}
 .leg{display:flex;flex-direction:column;gap:5px;font-size:.78rem}
 .leg .li{display:flex;align-items:center;gap:8px}
 .leg .sw{width:11px;height:11px;border-radius:3px;flex-shrink:0}
-.itemrows .irow{display:grid;grid-template-columns:1fr 74px 58px 84px 34px;gap:7px;margin-bottom:8px;align-items:center}
-.itemrows input,.itemrows select{padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--ink);font:inherit;font-size:.85rem}
+.itemrows .irow{display:grid;grid-template-columns:1fr 92px 62px 58px 84px 34px;gap:7px;margin-bottom:8px;align-items:center;grid-template-areas:"item cat unit qty price del"}
+.irow .zi{grid-area:item}.irow .zc{grid-area:cat}.irow .zu{grid-area:unit}.irow .zq{grid-area:qty}.irow .zp{grid-area:price}.irow .iconbtn{grid-area:del}
+@media(max-width:640px){.itemrows .irow{grid-template-columns:1fr 62px 74px 34px;grid-template-areas:"item item unit del" "cat qty price del"}}
+.itemrows input,.itemrows select{padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--ink);font:inherit;font-size:.85rem;min-width:0}
 .chartcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
 .chartcard h5{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--mut);margin-bottom:10px}
 .alert{display:flex;gap:9px;align-items:center;padding:10px 13px;border:1px solid var(--amber);background:var(--amberSoft);color:var(--amber);border-radius:10px;font-size:.8rem;font-weight:600;margin-top:10px}
@@ -170,6 +182,8 @@ table.tbl{width:100%;border-collapse:collapse;font-size:.83rem}
 #side{display:none}#mainwrap{margin-left:0}
 #bnav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--panel);border-top:1px solid var(--line);z-index:40;padding:5px 6px calc(5px + env(safe-area-inset-bottom))}
 #view{padding:14px 14px 92px}
+#topbar{padding:10px 14px;gap:8px}
+.iconbtn{width:34px;height:34px}
 .stats{grid-template-columns:repeat(2,1fr)}
 .grid2{grid-template-columns:1fr}
 .mrow{grid-template-columns:minmax(104px,1fr) repeat(var(--mt,3),72px) 40px 52px;gap:5px;padding:8px 6px}
@@ -187,7 +201,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:.83rem}
       <h2 id="pgtitle">Dashboard</h2>
       <span id="qbadge"></span><span id="dot"></span>
       <button class="iconbtn" id="btnSearch" title="Search"></button>
-      <button class="iconbtn" id="btnTheme" title="Theme"></button>
+      <button class="iconbtn" id="btnTheme" title="Light / dark theme"></button>
       <div style="position:relative">
         <button class="iconbtn" id="btnUser" title="Account"></button>
         <div id="usermenu"></div>
@@ -206,6 +220,8 @@ const h=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repla
 const LS={api:'ml_api',token:'ml_token',theme:'ml_theme',cache:'ml_c_',queue:'ml_q',user:'ml_user',settings:'ml_st'};
 const uuid=()=>(crypto.randomUUID?crypto.randomUUID():'id-'+Date.now()+'-'+Math.random().toString(36).slice(2));
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const dayOfWeek_=dd=>{const p=String(dd).split('-');return new Date(+p[0],+p[1]-1,+p[2]).getDay()};
 const todayISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const monthOf=d=>String(d).substring(0,7);
 const addDays=(d,n)=>{const p=d.split('-');const dt=new Date(+p[0],+p[1]-1,+p[2]+n);return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0')};
@@ -215,6 +231,7 @@ const r2l=n=>Math.round((Number(n)||0)*100)/100;
 const cur=()=>S.settings.CURRENCY||'\u09F3';
 const fmtM=n=>{const v=Math.round((Number(n)||0)*100)/100;return cur()+v.toLocaleString('en-US',{maximumFractionDigits:2})};
 function ApiErr(code,msg){return{code,msg}}
+const emptyRow=(msg,cols)=>'<tr><td colspan="'+cols+'" class="empty">'+h(msg)+'</td></tr>';
 const ICONS={
 home:'M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z',
 bowl:'M4 13h16a8 8 0 0 1-16 0zM9 10c-1-1.5 1-2.5 0-4M12 10c-1-1.5 1-2.5 0-4M15 10c-1-1.5 1-2.5 0-4',
@@ -256,16 +273,29 @@ function toast(msg,type,action){
 }
 function openModal(title,body,foot){
   const w=document.createElement('div'); w.className='mwrap';
-  w.innerHTML='<div class="mback"></div><div class="modal"><div class="mhead"><h3>'+h(title)+'</h3><button class="iconbtn mclose">'+ico('close')+'</button></div><div class="mbody">'+body+'</div>'+(foot?'<div class="mfoot">'+foot+'</div>':'')+'</div>';
+  w.innerHTML='<div class="mback"></div><div class="modal"><div class="mhead"><h3>'+h(title)+'</h3><button class="iconbtn mclose" title="Close">'+ico('close')+'</button></div><div class="mbody">'+body+'</div>'+(foot?'<div class="mfoot">'+foot+'</div>':'')+'</div>';
   $('#modals').appendChild(w);
-  w.querySelector('.mback').onclick=w.querySelector('.mclose').onclick=()=>w.remove();
+  w._close=()=>{ w.remove(); document.body.style.overflow=''; };
+  w.querySelector('.mback').onclick=w.querySelector('.mclose').onclick=w._close;
+  document.body.style.overflow='hidden';
   return w;
 }
+addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    const m=$('#modals').lastElementChild; if(m&&m._close) m._close();
+    const um=$('#usermenu'); if(um) um.style.display='none';
+  }
+});
 function confirmDlg(msg,danger){return new Promise(res=>{
   const w=openModal('Please confirm','<p style="font-size:.9rem;line-height:1.5">'+h(msg)+'</p>',
     '<button class="btn btn-s" data-n>Cancel</button><button class="btn '+(danger?'btn-d':'btn-p')+'" data-y>Confirm</button>');
-  w.querySelector('[data-y]').onclick=()=>{w.remove();res(true)};
-  w.querySelector('[data-n]').onclick=()=>{w.remove();res(false)};});}
+  w.querySelector('[data-y]').onclick=()=>{w._close();res(true)};
+  w.querySelector('[data-n]').onclick=()=>{w._close();res(false)};});}
+async function withGuard(btn,fn){
+  if(!btn||btn.disabled) return;
+  btn.disabled=true; const old=btn.innerHTML; btn.textContent='Saving…';
+  try{ await fn(); } finally { btn.disabled=false; btn.innerHTML=old; }
+}
 function printHtml(title,inner){
   const f=document.createElement('iframe'); f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';
   document.body.appendChild(f);
@@ -319,6 +349,11 @@ function onlineWatch(){
   addEventListener('online',upd); addEventListener('offline',upd);
 }
 /* ================= boot / auth ================= */
+/* Shows/hides the loading screen reliably (CSS + inline style, double safety). */
+function showBoot_(on){
+  $('#app').hidden=!!on;  $('#app').style.display=on?'none':'flex';
+  $('#boot').hidden=!on; $('#boot').style.display=on?'grid':'none';
+}
 function applyTheme(t){ document.documentElement.dataset.theme=t; localStorage.setItem(LS.theme,t);
   $('#metaTheme').content=(t==='dark')?'#141812':'#F4F1E9'; }
 function toggleTheme(){ applyTheme((localStorage.getItem(LS.theme)||'light')==='light'?'dark':'light'); }
@@ -337,8 +372,7 @@ async function init(){
 }
 function persist(){ localStorage.setItem(LS.user,JSON.stringify(S.user)); localStorage.setItem(LS.settings,JSON.stringify(S.settings)); }
 function renderApiScreen(err){
-  $('#app').hidden=true;
-  $('#boot').hidden=false;
+  showBoot_(true);
   $('#boot').innerHTML='<div class="center card"><div class="logo">'+BRAND+'<div><h1>Mess Ledger</h1><div class="sm mut">Connect to your Google Apps Script backend</div></div></div>'
    +(err?'<div class="alert">'+ico('alert')+h(err)+'</div>':'')
    +'<div class="field" style="margin-top:8px"><div class="lbl" style="margin-bottom:5px">Web App URL</div>'
@@ -347,19 +381,20 @@ function renderApiScreen(err){
    +'<p class="sm mut" style="margin-top:12px;line-height:1.5">This is the /exec URL from Deploy &gt; New deployment &gt; Web app in your Apps Script project.</p></div>';
   $('#go').onclick=async()=>{
     const v=$('#apiurl').value.trim();
-        if(!/^https:\/\/script\.google\.com\/(a\/macros\/[^\/]+\/)?(macros\/)?s\/.+\/exec/.test(v)){ toast('URL must end with /exec — copy the full link from Deploy > Manage deployments','err'); return; }
+    if(!/^https:\/\/script\.google\.com\/(a\/macros\/[^\/]+\/)?(macros\/)?s\/.+\/exec/.test(v)){ toast('URL must end with /exec — copy the full link from Deploy > Manage deployments','err'); return; }
     S.api=v; localStorage.setItem(LS.api,v);
     try{ const st=await api('setup.status'); toast('Connected to '+h(st.mess||st.app),''); init(); }
     catch(e){ toast('Could not connect: '+e.msg,'err'); }
   };
 }
 function renderLogin(msg){
-  $('#app').hidden=true; $('#boot').hidden=false;
+  showBoot_(true);
   $('#boot').innerHTML='<div class="center card"><div class="logo">'+BRAND+'<div><h1>'+h(S.settings.APP_NAME||'Mess Ledger')+'</h1><div class="sm mut">'+h(S.settings.MESS_NAME||'')+'</div></div></div>'
    +(msg?'<div class="alert">'+ico('alert')+h(msg)+'</div>':'')
    +'<form id="lform"><div class="field"><div class="lbl" style="margin-bottom:5px">Email</div><input id="lemail" type="email" autocomplete="username" required></div>'
    +'<div class="field"><div class="lbl" style="margin-bottom:5px">Password</div><input id="lpw" type="password" autocomplete="current-password" required></div>'
    +'<button class="btn btn-p" style="width:100%">Sign in</button></form></div>';
+  setTimeout(()=>{ const e=$('#lemail'); if(e) e.focus(); },60);
   $('#lform').onsubmit=async ev=>{ ev.preventDefault();
     try{ const r=await api('auth.login',{email:$('#lemail').value,password:$('#lpw').value});
       S.token=r.token; S.user=r.user; localStorage.setItem(LS.token,S.token);
@@ -374,7 +409,7 @@ function doLogout(callServer){
 }
 /* ================= setup wizard ================= */
 function renderWizard(){
-  $('#app').hidden=true; $('#boot').hidden=false;
+  showBoot_(true);
   const steps=['Mess information','Admin account','Meal configuration','Notifications','WhatsApp','Finish'];
   let st=0; const W={mess:{},admin:{},acct:{},notif:{email:true},wa:{}};
   const body=()=>'<div class="center card" style="max-width:480px"><div class="logo">'+BRAND+'<div><h1>First-time setup</h1><div class="sm mut">Step '+(st+1)+' of 6 — '+h(steps[st])+'</div></div></div>'
@@ -447,8 +482,9 @@ const NAV_DEFS={
  audit:['Audit log','book',['Admin']],
  users:['Users','shield',['Admin']],
  settings:['Settings','edit',['Admin','Manager','Accountant','Member']]};
+const TITLES={dashboard:'Dashboard',meals:'Daily meals',bazar:'Bazar',expenses:'Expenses',payments:'Payments',members:'Members',member:'Member profile',reports:'Reports & closing',notifications:'Notification outbox',audit:'Audit log',users:'Users & roles',settings:'Settings',more:'More',search:'Search'};
 function startApp(){
-  $('#boot').hidden=true; $('#app').hidden=false;
+  showBoot_(false);
   const role=S.user.role;
   $('#side').innerHTML='<div class="logo">'+BRAND.replace('44','36')+'<div><div style="font-weight:700">'+h(S.settings.APP_NAME||'Mess Ledger')+'</div><div class="sm mut">'+h(S.settings.MESS_NAME||'')+'</div></div></div>'
     +SIDE_GROUPS.map(g=>{
@@ -479,9 +515,10 @@ function changePwModal(){
     '<div class="field"><div class="lbl" style="margin-bottom:5px">Current password</div><input id="pw0" type="password"></div>'
     +'<div class="field"><div class="lbl" style="margin-bottom:5px">New password</div><input id="pw1" type="password"></div>',
     '<button class="btn btn-p" id="pwgo">Save</button>');
-  w.querySelector('#pwgo').onclick=async()=>{
-    try{ const r=await api('auth.changePassword',{current:w.querySelector('#pw0').value,next:w.querySelector('#pw1').value}); toast(r.message); w.remove(); }
-    catch(e){ toast(e.msg,'err'); } };
+  w.querySelector('#pwgo').onclick=()=>withGuard(w.querySelector('#pwgo'),async()=>{
+    const r=await api('auth.changePassword',{current:w.querySelector('#pw0').value,next:w.querySelector('#pw1').value});
+    toast(r.message); w._close();
+  });
 }
 function renderRoute(){
   const hsh=location.hash.replace(/^#\/?/,'')||'dashboard';
@@ -489,9 +526,11 @@ function renderRoute(){
   const PAGES={dashboard:viewDashboard,meals:viewMeals,bazar:viewBazar,expenses:viewExpenses,payments:viewPayments,members:viewMembers,member:viewMember,reports:viewReports,notifications:viewNotifications,audit:viewAudit,users:viewUsers,settings:viewSettings,more:viewMore,search:viewSearch};
   const pg=PAGES[path]?path:'dashboard';
   $('#view').innerHTML='<div class="loader"><i></i></div>';
+  window.scrollTo(0,0);
+  $('#pgtitle').textContent=TITLES[pg];
+  document.title=TITLES[pg]+' · '+(S.settings.APP_NAME||'Mess Ledger');
   PAGES[pg](params).catch(e=>{
     $('#view').innerHTML='<div class="errbox">'+h(e.msg||'Could not load this page')+'</div>'; });
-  $('#pgtitle').textContent=({dashboard:'Dashboard',meals:'Daily meals',bazar:'Bazar',expenses:'Expenses',payments:'Payments',members:'Members',member:'Member profile',reports:'Reports & closing',notifications:'Notification outbox',audit:'Audit log',users:'Users & roles',settings:'Settings',more:'More',search:'Search'})[pg];
   $$('#side .snav,#bnav a').forEach(a=>a.classList.toggle('on',a.dataset.id===pg));
 }
 /* ================= charts ================= */
@@ -539,8 +578,8 @@ async function viewDashboard(){
    +'<div class="tside"><div class="lbl">Today\u2019s bazar</div><b class="num" style="font-size:1.2rem">'+fmtM(d.today.bazar)+'</b><div class="sm mut">'+d.today.bazarCount+' entries</div></div></div>'
    +'<div class="grid2"><div class="chartcard"><h5>Meals — last 14 days</h5>'+barChart(d.trend.map(t=>({label:t.date.substring(8),value:t.meals})))+'</div>'
    +'<div class="chartcard"><h5>Daily expense — last 14 days</h5>'+barChart(d.trend.map(t=>({label:t.date.substring(8),value:t.expense,display:fmtM(t.expense)})))+'</div></div>'
-   +'<div class="grid2"><div class="chartcard"><h5>Bazar by category — this month</h5>'+(cats.length?donut(cats.map((c,i)=>({label:c[0],value:c[1],color:PALETTE[i%PALETTE.length],display:fmtM(c[1])})),fmtM(m.bazar)):'<p class="sm mut">No bazar recorded yet this month.</p>')+'</div>'
-   +'<div class="chartcard"><h5>Member meal consumption</h5>'+(d.topMembers.length?barChart(d.topMembers.map(x=>({label:x.name.split(' ')[0],value:x.meals}))):'<p class="sm mut">No meals yet.</p>')+'</div></div>';
+   +'<div class="grid2"><div class="chartcard"><h5>Bazar by category — this month</h5>'+(cats.length?donut(cats.map((c,i)=>({label:c[0],value:c[1],color:PALETTE[i%PALETTE.length],display:fmtM(c[1])})),fmtM(m.bazar)):'<p class="empty">No bazar recorded yet this month.</p>')+'</div>'
+   +'<div class="chartcard"><h5>Member meal consumption</h5>'+(d.topMembers.length?barChart(d.topMembers.map(x=>({label:x.name.split(' ')[0],value:x.meals}))):'<p class="empty">No meals yet.</p>')+'</div></div>';
 }
 function renderMemberDash(d){
   $('#view').innerHTML='<div class="page-head"><h3>Your summary — '+h(fmtML(d.month))+'</h3>'+(d.balance>0?'<span class="badge due">Due '+fmtM(d.balance)+'</span>':d.balance<0?'<span class="badge adv">Advance '+fmtM(Math.abs(d.balance))+'</span>':'<span class="badge ok">Paid up</span>')+'</div>'
@@ -570,12 +609,13 @@ async function viewMeals(params){
    +'<button class="btn" id="mall">'+ico('check')+'Mark all</button>'
    +'<button class="btn btn-s" id="mclr">Clear</button></div></div>'
    +'<div class="daystrip">'+[...Array(7)].map((_,i)=>{const dd=addDays(date,i-6);const isT=dd===todayISO();
-      return '<div class="dchip'+(dd===date?' on':'')+'" data-d="'+dd+'"><span class="'+(isT?'tod':'')+'">'+(isT?'TODAY':dd.substring(8)+'/'+dd.substring(5,7))+'</span><b class="num">'+dd.substring(0,4)+'</b></div>';}).join('')
-   +'<input type="date" id="dpick" value="'+date+'" style="border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);padding:6px 10px"></div>'
+      return '<div class="dchip'+(dd===date?' on':'')+'" data-d="'+dd+'"><span'+(isT?' class="tod"':'')+'>'+(isT?'TODAY':WD[dayOfWeek_(dd)])+'</span><b class="num">'+dd.substring(8)+'</b></div>';}).join('')
+   +'<input type="date" id="dpick" value="'+date+'" style="border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);padding:6px 10px;flex-shrink:0"></div>'
    +(ME.locked?'<div class="alert">'+ico('alert')+'<span>This month is closed'+(readOnly?' — read only.':' — as admin you can still edit (the month will be marked stale).')+'</span></div>':'')
    +'<div class="mtotals" id="mtot"></div>'
    +'<div class="tblwrap" id="mgrid"></div>'
-   +'<div class="savebar"><button class="btn btn-p" id="msave">'+ico('check')+'Save meals</button></div>';
+   +(readOnly?'':'<div class="savebar"><button class="btn btn-p" id="msave" disabled>'+ico('check')+'Save meals</button></div>');
+  function updateSaveBtn(){ const b=$('#msave'); if(b) b.disabled=!ME.dirty; }
   function renderTotals(){
     const tt={}; let tot=0;
     ME.mealTypes.forEach(t=>{tt[t]=ME.entries.reduce((s,e)=>s+(e.meals[t]||0),0); tot+=tt[t];});
@@ -587,11 +627,11 @@ async function viewMeals(params){
       const tot=ME.mealTypes.reduce((s,t)=>s+(e.meals[t]||0),0);
       return '<div class="mrow'+(e.absent?' absent':'')+'" data-i="'+i+'">'
       +'<div class="who"><b>'+h(e.name)+'</b><span class="sm mut">'+h(e.room||'')+(e.status!=='active'?' · '+h(e.status):'')+'</span></div>'
-      +ME.mealTypes.map(t=>'<div class="step"><button data-t="'+t+'" data-d="-1">'+ico('minus')+'</button><span class="n'+((e.meals[t]||0)>0?' hot':'')+'">'+(e.meals[t]||0)+'</span><button data-t="'+t+'" data-d="1">'+ico('plus')+'</button></div>').join('')
+      +ME.mealTypes.map(t=>'<div class="step"><button data-t="'+t+'" data-d="-1" title="Less">'+ico('minus')+'</button><span class="n'+((e.meals[t]||0)>0?' hot':'')+'">'+(e.meals[t]||0)+'</span><button data-t="'+t+'" data-d="1" title="More">'+ico('plus')+'</button></div>').join('')
       +'<div class="rtot num">'+tot+'</div>'
       +'<button class="tog'+(e.absent?' on':'')+'" title="Mark absent">ABS</button></div>';
-    }).join('')||'<p class="sm mut" style="padding:16px">No members to show for this date.</p>';
-    renderTotals();
+    }).join('')||'<p class="empty">No members to show for this date.</p>';
+    renderTotals(); updateSaveBtn();
     $$('#mgrid .mrow').forEach(row=>{
       const i=+row.dataset.i;
       row.querySelectorAll('.step button').forEach(b=>b.onclick=()=>{
@@ -617,7 +657,7 @@ async function viewMeals(params){
       st.querySelector('.n').classList.toggle('hot',val>0);
     });
     row.querySelector('.rtot').textContent=ME.mealTypes.reduce((s,t)=>s+(e.meals[t]||0),0);
-    ME.dirty=true; renderTotals();
+    ME.dirty=true; renderTotals(); updateSaveBtn();
   }
   renderGrid();
   $$('.dchip').forEach(c=>c.onclick=()=>{ if(ME.dirty&&!confirm('You have unsaved changes. Leave anyway?'))return; location.hash='#/meals?date='+c.dataset.d; });
@@ -631,12 +671,11 @@ async function viewMeals(params){
     if(!await confirmDlg('Copy meal entries from '+fmtD(addDays(date,-1))+' to '+fmtD(date)+'? Existing entries for '+fmtD(date)+' will be overwritten.')) return;
     try{ await api('meals.copyDay',{from:addDays(date,-1),to:date}); toast('Copied'); viewMeals(new URLSearchParams('date='+date)); }
     catch(e){ toast(e.msg,'err'); } };
-  $('#msave').onclick=async()=>{
-    if(readOnly) return toast('This month is closed','err');
-    try{
-      const r=await api('meals.save',{date:ME.date,entries:ME.entries.map(e=>({memberId:e.memberId,meals:e.meals,absent:e.absent}))});
-      ME.dirty=false; toast('Meals saved — total '+r.total); viewMeals(new URLSearchParams('date='+ME.date));
-    }catch(e){ toast(e.msg, e.code==='OFFLINE'?'':'err'); } };
+  const sb=$('#msave');
+  if(sb) sb.onclick=()=>withGuard(sb,async()=>{
+    const r=await api('meals.save',{date:ME.date,entries:ME.entries.map(e=>({memberId:e.memberId,meals:e.meals,absent:e.absent}))});
+    ME.dirty=false; toast('Meals saved — total '+r.total); viewMeals(new URLSearchParams('date='+ME.date));
+  });
 }
 /* ---------- shared list helpers ---------- */
 async function memberNames(){
@@ -665,9 +704,9 @@ async function viewBazar(params){
       return '<div class="tblwrap" style="margin-bottom:12px"><div class="rowline" style="cursor:default;background:var(--panel2)"><b>'+fmtD(date)+'</b><span class="sm mut">'+gs[date].length+' items · '+h(gs[date][0].buyer)+'</span><div style="flex:1"></div><b class="num">'+fmtM(dayTotal)+'</b></div>'
       +gs[date].map(it=>'<div class="rowline"><div class="grow"><b>'+h(it.item)+'</b> <span class="sm mut">'+h(it.category)+' · '+h(it.buyer)+'</span><div class="sm mut num">'+h(it.qty)+' '+h(it.unit)+' × '+fmtM(it.unitPrice)+'</div></div>'
       +'<b class="num">'+fmtM(it.total)+'</b>'
-      +'<button class="iconbtn" data-edit="'+h(it.id)+'">'+ico('edit')+'</button>'
-      +'<button class="iconbtn" style="color:var(--red)" data-del="'+h(it.id)+'">'+ico('trash')+'</button></div>').join('')+'</div>';
-    }).join('')||'<p class="sm mut" style="padding:14px">No bazar entries for this filter.</p>';
+      +'<button class="iconbtn" data-edit="'+h(it.id)+'" title="Edit">'+ico('edit')+'</button>'
+      +'<button class="iconbtn" style="color:var(--red)" data-del="'+h(it.id)+'" title="Delete">'+ico('trash')+'</button></div>').join('')+'</div>';
+    }).join('')||'<p class="empty">No bazar entries for this filter.</p>';
     $$('#blist [data-del]').forEach(b=>b.onclick=async()=>{
       if(!await confirmDlg('Delete this bazar entry?',true)) return;
       try{ await api('bazar.delete',{id:b.dataset.del}); toast('Deleted'); viewBazar(params); }catch(e){ toast(e.msg,'err'); }});
@@ -677,9 +716,10 @@ async function viewBazar(params){
         '<div class="fline"><div class="field"><div class="lbl">Item</div><input id="ei" value="'+h(it.item)+'"></div><div class="field"><div class="lbl">Category</div><input id="ec" value="'+h(it.category)+'"></div></div>'
         +'<div class="fline"><div class="field"><div class="lbl">Quantity</div><input id="eq" type="number" step="any" value="'+it.qty+'"></div><div class="field"><div class="lbl">Unit price</div><input id="ep" type="number" step="any" value="'+it.unitPrice+'"></div></div>',
         '<button class="btn btn-p" id="ego">Save</button>');
-      w.querySelector('#ego').onclick=async()=>{
-        try{ await api('bazar.update',{id:it.id,patch:{item:w.querySelector('#ei').value,category:w.querySelector('#ec').value,qty:w.querySelector('#eq').value,unitPrice:w.querySelector('#ep').value}});
-          toast('Updated'); w.remove(); viewBazar(params); }catch(e){ toast(e.msg,'err'); } };
+      w.querySelector('#ego').onclick=()=>withGuard(w.querySelector('#ego'),async()=>{
+        await api('bazar.update',{id:it.id,patch:{item:w.querySelector('#ei').value,category:w.querySelector('#ec').value,qty:w.querySelector('#eq').value,unitPrice:w.querySelector('#ep').value}});
+        toast('Updated'); w._close(); viewBazar(params);
+      });
     });
   }
   renderList(d.items);
@@ -689,6 +729,7 @@ async function viewBazar(params){
   $('#pdf').onclick=async()=>{ try{ const r=await api('reports.pdf',{type:'bazar',month}); downloadPdf(r.base64,r.filename); }catch(e){ toast(e.msg,'err'); } };
   $('#nb').onclick=()=>bazarForm();
 }
+const UNITS=['kg','gm','L','ml','pcs','dozen','bag','box'];
 function bazarForm(){
   const w=openModal('New bazar',
    '<div class="field"><div class="lbl">Date</div><input type="date" id="zd" value="'+todayISO()+'"></div>'
@@ -705,23 +746,22 @@ function bazarForm(){
   function addRow(){
     const r=document.createElement('div'); r.className='irow';
     r.innerHTML='<input placeholder="Item" class="zi"><select class="zc">'+cats.map(c=>'<option>'+h(c)+'</option>').join('')+'</select>'
+     +'<select class="zu" title="Unit">'+UNITS.map(u=>'<option>'+u+'</option>').join('')+'</select>'
      +'<input placeholder="Qty" type="number" step="any" class="zq"><input placeholder="Price" type="number" step="any" class="zp">'
-     +'<button class="iconbtn" style="color:var(--red)">'+ico('trash')+'</button>';
+     +'<button class="iconbtn" style="color:var(--red)" title="Remove">'+ico('trash')+'</button>';
     r.querySelector('.iconbtn').onclick=()=>{r.remove();total();};
     ['zq','zp'].forEach(c=>r.querySelector('.'+c).oninput=total);
     w.querySelector('#zrows').appendChild(r);
   }
   addRow();
   w.querySelector('#zadd').onclick=addRow;
-  w.querySelector('#zgo').onclick=async()=>{
-    const items=[...w.querySelectorAll('.irow')].map(r=>({item:r.querySelector('.zi').value,category:r.querySelector('.zc').value,qty:+r.querySelector('.zq').value||0,unitPrice:+r.querySelector('.zp').value||0,unit:'unit'}))
+  w.querySelector('#zgo').onclick=()=>withGuard(w.querySelector('#zgo'),async()=>{
+    const items=[...w.querySelectorAll('.irow')].map(r=>({item:r.querySelector('.zi').value,category:r.querySelector('.zc').value,qty:+r.querySelector('.zq').value||0,unit:r.querySelector('.zu').value,unitPrice:+r.querySelector('.zp').value||0}))
       .filter(i=>i.item&&i.qty>0);
-    if(!items.length) return toast('Add at least one item with quantity','err');
-    try{
-      const r=await api('bazar.create',{clientId:uuid(),date:w.querySelector('#zd').value,buyer:w.querySelector('#zb').value,vendor:w.querySelector('#zv').value,items});
-      toast(r.message); w.remove(); renderRoute();
-    }catch(e){ toast(e.msg, e.code==='OFFLINE'?'':'err'); }
-  };
+    if(!items.length){ toast('Add at least one item with quantity','err'); return; }
+    const r=await api('bazar.create',{clientId:uuid(),date:w.querySelector('#zd').value,buyer:w.querySelector('#zb').value,vendor:w.querySelector('#zv').value,items});
+    toast(r.message); w._close(); renderRoute();
+  });
 }
 /* ---------- Expenses ---------- */
 async function viewExpenses(params){
@@ -733,7 +773,8 @@ async function viewExpenses(params){
    +'<div class="mtotals">'+monthInput('em',month)+'<span class="tt t num">TOTAL '+fmtM(d.total)+'</span></div>'
    +'<div class="tblwrap"><table class="tbl"><tr><th>Date</th><th>Category</th><th>Description</th><th>Paid by</th><th class="r">Amount</th><th></th></tr>'
    +d.items.map(x=>'<tr><td>'+fmtD(x.date)+'</td><td><span class="badge off" style="background:var(--panel2);color:var(--ink2)">'+h(x.category)+'</span></td><td>'+h(x.description)+'</td><td>'+h(x.paidBy)+'</td><td class="r"><b>'+fmtM(x.amount)+'</b></td>'
-   +'<td style="white-space:nowrap"><button class="iconbtn" data-e="'+h(x.id)+'">'+ico('edit')+'</button><button class="iconbtn" style="color:var(--red)" data-d="'+h(x.id)+'">'+ico('trash')+'</button></td></tr>').join('')
+   +'<td style="white-space:nowrap"><button class="iconbtn" data-e="'+h(x.id)+'" title="Edit">'+ico('edit')+'</button><button class="iconbtn" style="color:var(--red)" data-d="'+h(x.id)+'" title="Delete">'+ico('trash')+'</button></td></tr>').join('')
+   +(d.items.length?'':emptyRow('No expenses recorded this month.',6))
    +'</table></div>';
   $('#em').onchange=()=>location.hash='#/expenses?month='+$('#em').value;
   $('#pdf').onclick=async()=>{ try{ const r=await api('reports.pdf',{type:'expense',month}); downloadPdf(r.base64,r.filename); }catch(e){ toast(e.msg,'err'); } };
@@ -744,10 +785,11 @@ async function viewExpenses(params){
     +'<div class="fline"><div class="field"><div class="lbl">Amount</div><input id="xa" type="number" step="any" value="'+(x?x.amount:'')+'"></div><div class="field"><div class="lbl">Paid by</div><input id="xb" value="'+h(x?x.paidBy:'')+'"></div></div>'
     +'<div class="fline"><div class="field"><div class="lbl">Payment method</div><input id="xm" value="'+h(x?x.method:'')+'"></div><div class="field"><div class="lbl">Reference</div><input id="xr" value="'+h(x?x.reference:'')+'"></div></div>',
     '<button class="btn btn-p" id="xgo">Save</button>');
-    w.querySelector('#xgo').onclick=async()=>{
+    w.querySelector('#xgo').onclick=()=>withGuard(w.querySelector('#xgo'),async()=>{
       const payload={date:w.querySelector('#xd').value,category:w.querySelector('#xc').value,description:w.querySelector('#xds').value,amount:w.querySelector('#xa').value,paidBy:w.querySelector('#xb').value,method:w.querySelector('#xm').value,reference:w.querySelector('#xr').value};
-      try{ if(x) await api('expenses.update',{id:x.id,patch:payload}); else await api('expenses.create',{...payload,clientId:uuid()});
-        toast('Saved'); w.remove(); renderRoute(); }catch(e){ toast(e.msg, e.code==='OFFLINE'?'':'err'); } }; };
+      if(x) await api('expenses.update',{id:x.id,patch:payload}); else await api('expenses.create',{...payload,clientId:uuid()});
+      toast('Saved'); w._close(); renderRoute();
+    }); };
   $('#ne').onclick=()=>form(null);
   $$('#view [data-e]').forEach(b=>b.onclick=()=>form(d.items.find(x=>x.id===b.dataset.e)));
   $$('#view [data-d]').forEach(b=>b.onclick=async()=>{
@@ -764,7 +806,8 @@ async function viewPayments(params){
    +'<div class="tblwrap"><table class="tbl"><tr><th>Date</th><th>Member</th><th>Method / Ref</th><th class="r">Amount</th><th></th></tr>'
    +d.items.map(x=>'<tr><td>'+fmtD(x.date)+'</td><td><b>'+h(x.memberName)+'</b><div class="sm mut">'+h(x.memberId)+'</div></td><td>'+h(x.method)+'<div class="sm mut">'+h(x.reference)+'</div></td><td class="r"><b>'+fmtM(x.amount)+'</b></td>'
    +'<td style="white-space:nowrap"><button class="iconbtn" title="Receipt PDF" data-rc="'+h(x.id)+'">'+ico('file')+'</button><button class="iconbtn" title="Email receipt" data-em="'+h(x.id)+'" data-m="'+h(x.memberId)+'">'+ico('mail')+'</button><button class="iconbtn" title="WhatsApp receipt" data-wa="'+h(x.id)+'" data-m="'+h(x.memberId)+'">'+ico('chat')+'</button>'
-   +'<button class="iconbtn" style="color:var(--red)" data-d="'+h(x.id)+'">'+ico('trash')+'</button></td></tr>').join('')
+   +'<button class="iconbtn" style="color:var(--red)" data-d="'+h(x.id)+'" title="Delete">'+ico('trash')+'</button></td></tr>').join('')
+   +(d.items.length?'':emptyRow('No payments recorded this month.',5))
    +'</table></div>';
   $('#pm').onchange=()=>location.hash='#/payments?month='+$('#pm').value;
   $('#np').onclick=()=>{
@@ -773,9 +816,10 @@ async function viewPayments(params){
      +'<div class="field"><div class="lbl">Amount</div><input id="pa" type="number" step="any"></div>'
      +'<div class="fline"><div class="field"><div class="lbl">Method</div><input id="pme" placeholder="Cash / bKash / Bank"></div><div class="field"><div class="lbl">Reference</div><input id="pr"></div></div>',
      '<button class="btn btn-p" id="pgo">Save</button>');
-    w.querySelector('#pgo').onclick=async()=>{
-      try{ const r=await api('payments.create',{clientId:uuid(),date:w.querySelector('#pd').value,memberId:w.querySelector('#pmem').value,amount:w.querySelector('#pa').value,method:w.querySelector('#pme').value,reference:w.querySelector('#pr').value});
-        toast(r.message); w.remove(); renderRoute(); }catch(e){ toast(e.msg, e.code==='OFFLINE'?'':'err'); } };
+    w.querySelector('#pgo').onclick=()=>withGuard(w.querySelector('#pgo'),async()=>{
+      const r=await api('payments.create',{clientId:uuid(),date:w.querySelector('#pd').value,memberId:w.querySelector('#pmem').value,amount:w.querySelector('#pa').value,method:w.querySelector('#pme').value,reference:w.querySelector('#pr').value});
+      toast(r.message); w._close(); renderRoute();
+    });
   };
   $$('#view [data-rc]').forEach(b=>b.onclick=async()=>{ try{ const r=await api('reports.pdf',{type:'receipt',paymentId:b.dataset.rc}); downloadPdf(r.base64,r.filename); }catch(e){ toast(e.msg,'err'); }});
   $$('#view [data-em]').forEach(b=>b.onclick=async()=>{
@@ -813,7 +857,7 @@ async function viewMembers(params){
      '<div class="rowline" data-m="'+h(m.id)+'"><div class="grow"><b>'+h(m.name)+'</b> <span class="sm mut">'+h(m.id)+' · '+(m.room||'—')+'</span><div class="sm mut">'+h(m.mobile)+'</div></div>'
      +'<span class="badge '+h(m.status)+'">'+h(m.status)+'</span>'
      +(m.balance>0?'<span class="badge due num">DUE '+fmtM(m.balance)+'</span>':m.balance<0?'<span class="badge adv num">ADV '+fmtM(Math.abs(m.balance))+'</span>':'<span class="badge ok">CLEAR</span>')
-     +ico('chevR')+'</div>').join(''):'<p class="sm mut" style="padding:16px">No members found.</p>')+'</div>';
+     +ico('chevR')+'</div>').join(''):'<p class="empty">No members found.</p>')+'</div>';
   let tmr; $('#mq').oninput=e=>{ clearTimeout(tmr); tmr=setTimeout(()=>location.hash='#/members?q='+encodeURIComponent(e.target.value)+'&status='+status,450); };
   $$('.chip').forEach(c=>c.onclick=()=>location.hash='#/members?q='+encodeURIComponent(q)+'&status='+c.dataset.s);
   $$('#view .rowline[data-m]').forEach(r=>r.onclick=()=>location.hash='#/member?id='+r.dataset.m);
@@ -829,15 +873,14 @@ function memberForm(m){
    +(m?'':'<div class="field"><div class="lbl">Initial advance (optional)</div><input id="fa" type="number" step="any" value="0"></div>')+'</div>'
    +'<div class="field"><div class="lbl">Notes</div><input id="fno" value="'+h(m?m.notes:'')+'"></div>',
    '<button class="btn btn-p" id="fgo">Save</button>');
-  w.querySelector('#fgo').onclick=async()=>{
+  w.querySelector('#fgo').onclick=()=>withGuard(w.querySelector('#fgo'),async()=>{
     const p={name:w.querySelector('#fn').value,mobile:w.querySelector('#fm').value,email:w.querySelector('#fe').value,gender:w.querySelector('#fg').value,
       joining:w.querySelector('#fj').value,leaving:w.querySelector('#fl').value,room:w.querySelector('#fr').value,emergency:w.querySelector('#fec').value,
       fixed:w.querySelector('#ff').value,notes:w.querySelector('#fno').value};
-    try{
-      if(m) await api('members.update',{id:m.id,patch:p});
-      else { p.advance=w.querySelector('#fa').value; await api('members.create',p); }
-      toast('Saved'); w.remove(); renderRoute();
-    }catch(e){ toast(e.msg,'err'); } };
+    if(m) await api('members.update',{id:m.id,patch:p});
+    else { p.advance=w.querySelector('#fa').value; await api('members.create',p); }
+    toast('Saved'); w._close(); renderRoute();
+  });
 }
 async function viewMember(params){
   const id=params.get('id')||S.user.memberId;
@@ -847,7 +890,7 @@ async function viewMember(params){
   let tab='st';
   const balBadge=m.balance>0?'<span class="badge due num">DUE '+fmtM(m.balance)+'</span>':m.balance<0?'<span class="badge adv num">ADVANCE '+fmtM(Math.abs(m.balance))+'</span>':'<span class="badge ok">CLEAR</span>';
   $('#view').innerHTML='<div class="card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">'
-   +'<div class="grow"><h3>'+h(m.name)+'</h3><div class="sm mut">'+h(m.id)+' · '+(m.room||'—')+' · '+h(m.mobile)+' · joined '+fmtD(m.joining)+'</div>'
+   +'<div class="grow" style="min-width:200px"><h3>'+h(m.name)+'</h3><div class="sm mut">'+h(m.id)+' · '+(m.room||'—')+' · '+h(m.mobile)+' · joined '+fmtD(m.joining)+'</div>'
    +(m.email?'<div class="sm mut">'+h(m.email)+'</div>':'')+'</div>'
    +'<span class="badge '+h(m.status)+'">'+h(m.status)+'</span>'+balBadge
    +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
@@ -871,7 +914,7 @@ async function viewMember(params){
       b.innerHTML='<div class="page-head" style="margin:6px 0 10px">'+monthInput('mlm',month)+'</div>'
       +'<div class="tblwrap"><table class="tbl"><tr><th>Date</th>'+st.mealTypes.map(t=>'<th class="r">'+h(t.slice(0,3))+'</th>').join('')+'<th class="r">Total</th></tr>'
       +(st.days.map(dd=>'<tr><td>'+fmtD(dd.date)+'</td>'+st.mealTypes.map(t=>'<td class="r">'+dd[t]+'</td>').join('')+'<td class="r"><b>'+(dd.absent?'A':dd.total)+'</b></td></tr>').join('')
-      +'<tr><td><b>Total</b></td>'+st.mealTypes.map(t=>'<td class="r"><b>'+st.days.reduce((s,x)=>s+x[t],0)+'</b></td>').join('')+'<td class="r"><b>'+st.meals+'</b></td></tr>')
+      +(st.days.length?('<tr><td><b>Total</b></td>'+st.mealTypes.map(t=>'<td class="r"><b>'+st.days.reduce((s,x)=>s+x[t],0)+'</b></td>').join('')+'<td class="r"><b>'+st.meals+'</b></td></tr>'):emptyRow('No meal records this month.',st.mealTypes.length+2)))
       +'</table></div>';
       $('#mlm').onchange=()=>location.hash='#/member?id='+id+'&month='+$('#mlm').value;
     }
@@ -880,11 +923,19 @@ async function viewMember(params){
       +(S.user.role!=='Member'?'<button class="btn btn-p" id="padd">'+ico('plus')+'Add payment</button>':'')+'</div>'
       +'<div class="tblwrap"><table class="tbl"><tr><th>Date</th><th>Method</th><th>Reference</th><th class="r">Amount</th></tr>'
       +(st.payments.map(p=>'<tr><td>'+fmtD(p.date)+'</td><td>'+h(p.method)+'</td><td>'+h(p.ref)+'</td><td class="r"><b>'+fmtM(p.amount)+'</b></td></tr>').join('')
-      +'<tr><td colspan="3"><b>Total '+fmtML(month)+'</b></td><td class="r"><b>'+fmtM(st.paid)+'</b></td></tr>')+'</table></div>';
+      +(st.payments.length?'<tr><td colspan="3"><b>Total '+fmtML(month)+'</b></td><td class="r"><b>'+fmtM(st.paid)+'</b></td></tr>':emptyRow('No payments this month.',4)))
+      +'</table></div>';
       const mm=$('#pym'); if(mm) mm.onchange=()=>location.hash='#/member?id='+id+'&month='+mm.value;
-      const pa=$('#padd'); if(pa) pa.onclick=async()=>{ const amt=prompt('Payment amount:'); if(!amt) return;
-        try{ const r=await api('payments.create',{clientId:uuid(),date:todayISO(),memberId:id,amount:amt,method:'Cash'});
-        toast(r.message); renderRoute(); }catch(e){ toast(e.msg,'err'); } };
+      const pa=$('#padd'); if(pa) pa.onclick=()=>{
+        const w=openModal('Add payment — '+h(m.name),
+         '<div class="fline"><div class="field"><div class="lbl">Date</div><input type="date" id="qpd" value="'+todayISO()+'"></div><div class="field"><div class="lbl">Amount</div><input id="qamt" type="number" step="any"></div></div>'
+         +'<div class="fline"><div class="field"><div class="lbl">Method</div><input id="qme" placeholder="Cash / bKash"></div><div class="field"><div class="lbl">Reference</div><input id="qref"></div></div>',
+         '<button class="btn btn-p" id="qgo">Save</button>');
+        w.querySelector('#qgo').onclick=()=>withGuard(w.querySelector('#qgo'),async()=>{
+          const r=await api('payments.create',{clientId:uuid(),date:w.querySelector('#qpd').value,memberId:id,amount:w.querySelector('#qamt').value,method:w.querySelector('#qme').value,reference:w.querySelector('#qref').value});
+          toast(r.message); w._close(); renderRoute();
+        });
+      };
     }
   }
   renderTab();
@@ -970,6 +1021,7 @@ async function viewNotifications(){
    +'<div class="tblwrap"><table class="tbl"><tr><th>Sent at</th><th>Member</th><th>Type</th><th>Channel</th><th>Message</th><th>Status</th></tr>'
    +d.items.map(x=>'<tr><td class="sm num">'+h(x.sent||'—')+'</td><td>'+h(x.member)+'</td><td>'+h(x.type)+'</td><td>'+h(x.channel)+'</td><td class="sm mut">'+h(x.message)+'</td>'
    +'<td>'+(x.status==='SENT'?'<span class="badge ok">sent</span>':x.status==='QUEUED'?'<span class="badge off">queued</span>':'<span class="badge due" title="'+h(x.error)+'">failed ×'+x.retries+'</span>')+'</td></tr>').join('')
+   +(d.items.length?'':emptyRow('No notifications yet. Bills and receipts appear here when they are sent.',6))
    +'</table></div>';
   $('#nrt').onclick=async()=>{ try{ const r=await api('notifications.retry'); toast(r.message); renderRoute(); }catch(e){ toast(e.msg,'err'); } };
 }
@@ -981,6 +1033,7 @@ async function viewAudit(params){
   $('#view').innerHTML='<div class="page-head"><h3>Audit log (latest entries)</h3><select id="af" style="border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);padding:8px 10px"><option value="">All modules</option>'+mods.filter(Boolean).map(m=>'<option'+(mod===m?' selected':'')+'>'+m+'</option>').join('')+'</select></div>'
    +'<div class="tblwrap"><table class="tbl"><tr><th>Time</th><th>User</th><th>Action</th><th>Record</th><th>Detail</th><th>Result</th></tr>'
    +d.entries.map(x=>'<tr><td class="sm num">'+h(x.time)+'</td><td class="sm">'+h(x.user)+'</td><td>'+h(x.action)+'</td><td class="sm mut">'+h(x.record)+'</td><td class="sm mut">'+h(x.detail)+'</td><td>'+(x.result==='OK'?'<span class="badge ok">OK</span>':'<span class="badge off">'+h(x.result)+'</span>')+'</td></tr>').join('')
+   +(d.entries.length?'':emptyRow('Nothing in the audit log for this filter.',6))
    +'</table></div>';
   $('#af').onchange=()=>location.hash='#/audit?module='+$('#af').value;
 }
@@ -992,7 +1045,8 @@ async function viewUsers(){
    +'<div class="tblwrap"><table class="tbl"><tr><th>Name</th><th>Email</th><th>Role</th><th>Linked member</th><th>Last login</th><th>Status</th><th></th></tr>'
    +d.users.map(u=>'<tr><td><b>'+h(u.name)+'</b></td><td class="sm">'+h(u.email)+'</td><td><span class="badge off" style="background:var(--panel2);color:var(--ink2)">'+h(u.role)+'</span></td><td class="sm mut">'+h(u.memberId||'—')+'</td><td class="sm mut">'+h(u.lastLogin||'never')+'</td>'
    +'<td>'+(u.status==='active'?'<span class="badge ok">active</span>':'<span class="badge off">disabled</span>')+'</td>'
-   +'<td style="white-space:nowrap"><button class="iconbtn" data-e="'+h(u.id)+'">'+ico('edit')+'</button><button class="iconbtn" data-s="'+h(u.id)+'">'+ico('shield')+'</button></td></tr>').join('')
+   +'<td style="white-space:nowrap"><button class="iconbtn" data-e="'+h(u.id)+'" title="Edit">'+ico('edit')+'</button><button class="iconbtn" data-s="'+h(u.id)+'" title="Enable / disable">'+ico('shield')+'</button></td></tr>').join('')
+   +(d.users.length?'':emptyRow('No users yet.',7))
    +'</table></div>';
   $('#nu').onclick=()=>userForm(null,members);
   $$('#view [data-e]').forEach(b=>b.onclick=()=>userForm(d.users.find(u=>u.id===b.dataset.e),members));
@@ -1010,13 +1064,11 @@ function userForm(u,members){
    +'<div class="field"><div class="lbl">Member (needed for Member role)</div><select id="um"><option value="">—</option>'+options(members,'id','name',u?u.memberId:'')+'</select></div></div>'
    +(u?'':'<div class="field"><div class="lbl">Password (min 6 characters)</div><input id="up" type="password"></div>'),
    '<button class="btn btn-p" id="ugo">Save</button>');
-  w.querySelector('#ugo').onclick=async()=>{
-    try{
-      if(u) await api('users.update',{id:u.id,patch:{name:w.querySelector('#un').value,role:w.querySelector('#ur').value,memberId:w.querySelector('#um').value}});
-      else await api('users.create',{name:w.querySelector('#un').value,email:w.querySelector('#ue').value,password:w.querySelector('#up').value,role:w.querySelector('#ur').value,memberId:w.querySelector('#um').value});
-      toast('Saved'); w.remove(); renderRoute();
-    }catch(e){ toast(e.msg,'err'); }
-  };
+  w.querySelector('#ugo').onclick=()=>withGuard(w.querySelector('#ugo'),async()=>{
+    if(u) await api('users.update',{id:u.id,patch:{name:w.querySelector('#un').value,role:w.querySelector('#ur').value,memberId:w.querySelector('#um').value}});
+    else await api('users.create',{name:w.querySelector('#un').value,email:w.querySelector('#ue').value,password:w.querySelector('#up').value,role:w.querySelector('#ur').value,memberId:w.querySelector('#um').value});
+    toast('Saved'); w._close(); renderRoute();
+  });
 }
 /* ---------- Settings ---------- */
 async function viewSettings(){
@@ -1079,24 +1131,23 @@ async function viewSettings(){
   function bind(){
     $$('#sbody .sw').forEach(x=>x.onclick=()=>x.classList.toggle('on'));
     const val=id=>{const el=$('#'+id); return el?el.value:undefined;};
-    const sv=$('#sbody #sv'); if(sv) sv.onclick=async()=>{
+    const sv=$('#sbody #sv'); if(sv) sv.onclick=()=>withGuard(sv,async()=>{
       const set={};
       if(tab==='mess') Object.assign(set,{MESS_NAME:val('s_name'),MESS_ADDRESS:val('s_addr'),MESS_PHONE:val('s_phone'),MESS_EMAIL:val('s_email'),CURRENCY:val('s_cur'),TIMEZONE:val('s_tz')});
       if(tab==='acct') Object.assign(set,{CALC_METHOD:val('s_calc'),DEFAULT_FIXED_CHARGE:val('s_fixed'),SERVICE_CHARGE_PCT:val('s_svc'),CLOSING_DAY:val('s_close'),MEAL_TYPES:val('s_types'),CATEGORIES:val('s_cats'),BAZAR_CATEGORIES:val('s_bcats')});
       if(tab==='notif'){ $$('#sbody .sw').forEach(x=>set[x.dataset.k]=x.classList.contains('on')?'true':'false'); set.DUE_REMINDER_DAY=val('s_drday'); }
       if(tab==='email') Object.assign(set,{TPL_SUBJECT_BILL:val('s_subj'),TPL_BILL:val('s_bill'),TPL_RECEIPT:val('s_rcpt'),TPL_REMINDER:val('s_rem'),TPL_MEAL:val('s_meal')});
       if(tab==='pwa') Object.assign(set,{APP_NAME:val('s_app'),APP_SHORT_NAME:val('s_short')});
-      try{ const r=await api('settings.update',{settings:set}); S.settings={...S.settings,...r.data.settings}; S.waConfigured=!!r.data.waConfigured; persist(); toast(r.message); }
-      catch(e){ toast(e.msg,'err'); }
-    };
+      const r=await api('settings.update',{settings:set}); S.settings={...S.settings,...r.data.settings}; S.waConfigured=!!r.data.waConfigured; persist(); toast(r.message);
+    });
     const stest=$('#sbody #stest'); if(stest) stest.onclick=async()=>{
       try{ await api('email.send',{type:'summary',month:monthOf(todayISO())}); toast('Test email sent to your address'); }catch(e){ toast(e.msg,'err'); } };
-    const svwa=$('#sbody #svwa'); if(svwa) svwa.onclick=async()=>{
+    const svwa=$('#sbody #svwa'); if(svwa) svwa.onclick=()=>withGuard(svwa,async()=>{
       const wa={provider:$('#w_prov').value,url:$('#w_url').value,sender:$('#w_sender').value};
       if($('#w_key').value) wa.apiKey=$('#w_key').value;
-      try{ const r=await api('settings.update',{settings:{WA_COUNTRY_CODE:$('#w_cc').value},wa:wa});
-        S.settings={...S.settings,...r.data.settings}; S.waConfigured=!!r.data.waConfigured; persist(); toast(r.message); }
-      catch(e){ toast(e.msg,'err'); } };
+      const r=await api('settings.update',{settings:{WA_COUNTRY_CODE:$('#w_cc').value},wa:wa});
+      S.settings={...S.settings,...r.data.settings}; S.waConfigured=!!r.data.waConfigured; persist(); toast(r.message);
+    });
     const wtest=$('#sbody #wtest'); if(wtest) wtest.onclick=async()=>{
       try{ const r=await api('whatsapp.test',{to:val('w_to')}); toast(r.message); }catch(e){ toast(e.msg,'err'); } };
     const inst=$('#sbody #inst'); if(inst) inst.onclick=promptInstall;
@@ -1111,14 +1162,14 @@ async function viewSettings(){
     if(tab==='system') loadTriggers();
   }
   async function loadBackups(){ try{ const d=await apiC('backup.list');
-    $('#bklist').innerHTML=d.backups.map(b=>'<div class="rowline"><div class="grow"><b class="sm">'+h(b.name)+'</b><div class="sm mut">'+h(b.date)+'</div></div><a class="btn btn-s" target="_blank" href="'+h(b.url)+'">Open</a></div>').join('')||'<p class="sm mut">No backups yet.</p>'; }catch(e){} }
+    $('#bklist').innerHTML=d.backups.map(b=>'<div class="rowline"><div class="grow"><b class="sm">'+h(b.name)+'</b><div class="sm mut">'+h(b.date)+'</div></div><a class="btn btn-s" target="_blank" href="'+h(b.url)+'">Open</a></div>').join('')||'<p class="empty">No backups yet.</p>'; }catch(e){} }
   async function loadTriggers(){ try{ const d=await apiC('triggers.status');
     $('#trig').innerHTML=d.triggers.length? d.triggers.map(t=>h(t.handler)+' ('+h(t.type)+')').join('<br>') : 'No triggers installed. Automation stays off until you install them.'; }catch(e){ $('#trig').textContent='Could not load trigger status.'; } }
   render();
   $$('#view .tab').forEach(t=>t.onclick=()=>{tab=t.dataset.t;render();});
 }
 /* ---------- More ---------- */
-function viewMore(){
+async function viewMore(){
   const role=S.user.role;
   const items=[
     (role!=='Member'?{id:'payments',t:'Payments',i:'scale'}:null),
@@ -1152,10 +1203,10 @@ async function viewSearch(params){
   if(q) doSearch(q);
   async function doSearch(qq){
     if(qq.trim().length<2){ $('#sres').innerHTML=''; return; }
-    let d; try{ d=await apiC('search.query',{q:qq}); }catch(e){ $('#sres').innerHTML='<p class="sm mut" style="padding:12px">'+h(e.msg)+'</p>'; return; }
+    let d; try{ d=await apiC('search.query',{q:qq}); }catch(e){ $('#sres').innerHTML='<p class="empty">'+h(e.msg)+'</p>'; return; }
     $('#sres').innerHTML=d.groups.map(g=>'<div class="sec"><h4>'+h(g.label)+'</h4><div class="tblwrap">'
       +g.items.map(it=>'<div class="rowline" data-mod="'+h(g.module)+'" data-id="'+h(it.id)+'"><div class="grow"><b>'+h(it.title)+'</b><div class="sm mut">'+h(it.sub)+'</div></div>'+ico('chevR')+'</div>').join('')
-      +'</div></div>').join('')||'<p class="sm mut" style="padding:14px">No results.</p>';
+      +'</div></div>').join('')||'<p class="empty">No results.</p>';
     $$('#sres .rowline').forEach(r=>r.onclick=()=>{
       if(r.dataset.mod==='member') location.hash='#/member?id='+r.dataset.id;
       else if(r.dataset.mod==='payment') location.hash='#/payments';
