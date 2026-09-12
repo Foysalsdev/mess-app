@@ -346,7 +346,7 @@ function renderApiScreen(err){
    +'<p class="sm mut" style="margin-top:12px;line-height:1.5">This is the /exec URL from Deploy &gt; New deployment &gt; Web app in your Apps Script project.</p></div>';
   $('#go').onclick=async()=>{
     const v=$('#apiurl').value.trim();
-    if(!/https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(v)){ toast('That does not look like an Apps Script /exec URL','err'); return; }
+        if(!/^https:\/\/script\.google\.com\/(a\/macros\/[^\/]+\/)?(macros\/)?s\/.+\/exec/.test(v)){ toast('URL must end with /exec — copy the full link from Deploy > Manage deployments','err'); return; }
     S.api=v; localStorage.setItem(LS.api,v);
     try{ const st=await api('setup.status'); toast('Connected to '+h(st.mess||st.app),''); init(); }
     catch(e){ toast('Could not connect: '+e.msg,'err'); }
