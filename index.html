@@ -1110,7 +1110,7 @@ async function viewSettings(){
      +'<div class="field"><div class="lbl">Meal reminder</div><textarea id="s_meal">'+h(s.TPL_MEAL)+'</textarea></div>'
      +'<button class="btn btn-p" id="sv">Save</button> <button class="btn" id="stest">Send test email to me</button></div>';
     if(tab==='wa') b.innerHTML='<div class="card">'
-     +'<div class="field"><div class="lbl">Provider</div><select id="w_prov"><option value="none"'+(s.WA_PROVIDER==='none'?' selected':'')+'>Disabled (share-link fallback)</option><option value="generic"'+(s.WA_PROVIDER!=='none'?' selected':'')+'>Generic JSON API</option></select></div>'
+          +'<div class="field"><div class="lbl">Provider</div><select id="w_prov"><option value="none"'+(s.WA_PROVIDER==='none'?' selected':'')+'>Disabled (share-link fallback)</option><option value="cloud"'+(s.WA_PROVIDER==='cloud'?' selected':'')+'>Meta / WhatsApp Cloud API</option><option value="generic"'+(s.WA_PROVIDER==='generic'?' selected':'')+'>Generic JSON API</option></select></div>'
      +G('w_url','API URL',s.WA_API_URL)+G('w_sender','Sender number',s.WA_SENDER)+G('w_cc','Country code',s.WA_COUNTRY_CODE)
      +'<div class="field"><div class="lbl">API key '+(s.WA_API_KEY_SET?'<span class="badge ok">configured</span>':'')+'</div><input id="w_key" type="password" placeholder="'+(s.WA_API_KEY_SET?'leave blank to keep current key':'paste key here')+'"></div>'
      +'<p class="sm mut" style="margin:8px 0;line-height:1.5">The key is stored only inside Apps Script and never sent to the browser. Expected request: POST to the URL with header "Authorization: Bearer KEY" and body {"from","to","type":"text","text"}. If your provider uses a different format, adapt the single function sendWhatsAppMessage_ in WhatsAppService.gs.</p>'
