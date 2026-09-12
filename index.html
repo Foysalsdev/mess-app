@@ -139,8 +139,8 @@ table.tbl{width:100%;border-collapse:collapse;font-size:.83rem}
 .mhead{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line2);position:sticky;top:0;background:var(--panel)}
 .mbody{padding:18px}
 .mfoot{display:flex;gap:8px;justify-content:flex-end;padding:12px 18px;border-top:1px solid var(--line2);position:sticky;bottom:0;background:var(--panel)}
-#toasts{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:8px;width:min(92vw,380px)}
-.toast{background:var(--ink);color:var(--bg);padding:11px 15px;border-radius:11px;font-size:.83rem;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px}
+#toasts{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:8px;width:min(92vw,420px)}
+.toast{background:var(--ink);color:var(--bg);padding:11px 15px;border-radius:11px;font-size:.83rem;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px;line-height:1.45;overflow-wrap:anywhere;max-height:44vh;overflow:auto;cursor:pointer}
 .toast.err{background:var(--red);color:#fff}
 .toast button{background:none;border:0;color:inherit;font:inherit;font-weight:700;cursor:pointer;text-decoration:underline}
 #ob{position:fixed;top:0;left:0;right:0;z-index:70;background:var(--amber);color:#fff;text-align:center;font-size:.78rem;font-weight:600;padding:6px}
@@ -184,6 +184,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:.83rem}
 #view{padding:14px 14px 92px}
 #topbar{padding:10px 14px;gap:8px}
 .iconbtn{width:34px;height:34px}
+#toasts{bottom:86px}
 .stats{grid-template-columns:repeat(2,1fr)}
 .grid2{grid-template-columns:1fr}
 .mrow{grid-template-columns:minmax(104px,1fr) repeat(var(--mt,3),72px) 40px 52px;gap:5px;padding:8px 6px}
@@ -268,8 +269,11 @@ const BRAND='<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><rect
 function toast(msg,type,action){
   const t=document.createElement('div'); t.className='toast'+(type==='err'?' err':'');
   t.innerHTML='<span style="flex:1">'+h(msg)+'</span>'+(action?'<button>'+h(action.label)+'</button>':'');
-  if(action) t.querySelector('button').onclick=()=>{action.cb();t.remove();};
-  $('#toasts').appendChild(t); setTimeout(()=>t.remove(),4200);
+  if(action) t.querySelector('button').onclick=ev=>{ev.stopPropagation();action.cb();t.remove();};
+  t.onclick=()=>t.remove();
+  $('#toasts').appendChild(t);
+  const ms=Math.max(4000,Math.min(10000,2200+String(msg).length*50));
+  setTimeout(()=>t.remove(),ms);
 }
 function openModal(title,body,foot){
   const w=document.createElement('div'); w.className='mwrap';
@@ -349,7 +353,6 @@ function onlineWatch(){
   addEventListener('online',upd); addEventListener('offline',upd);
 }
 /* ================= boot / auth ================= */
-/* Shows/hides the loading screen reliably (CSS + inline style, double safety). */
 function showBoot_(on){
   $('#app').hidden=!!on;  $('#app').style.display=on?'none':'flex';
   $('#boot').hidden=!on; $('#boot').style.display=on?'grid':'none';
@@ -360,6 +363,8 @@ function toggleTheme(){ applyTheme((localStorage.getItem(LS.theme)||'light')==='
 async function init(){
   applyTheme(localStorage.getItem(LS.theme)||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'));
   onlineWatch(); updateSyncBadge(); registerSW();
+  /* FAST PATH: signed in on this device — open the app instantly, verify in the background. */
+  if(S.api && S.token && S.user && S.user.id){ startApp(); refreshSession_(); return; }
   if(!S.api){ renderApiScreen(); return; }
   try{
     const st=await api('setup.status');
@@ -369,6 +374,15 @@ async function init(){
   try{ const me=await apiC('auth.me'); S.user=me.user; S.settings=me.settings; persist(); startApp(); }
   catch(e){ if(e.code==='AUTH'){ renderLogin(); return; }
     if(S.user&&S.settings){ startApp(); return; } renderLogin(); }
+}
+var APP_READY_=false;
+async function refreshSession_(){
+  try{
+    const me=await apiC('auth.me');
+    if(me && me.user){ S.user=me.user; S.settings=me.settings; persist(); }
+  }catch(e){
+    if(e.code==='AUTH') doLogout(false); /* token expired — back to the login screen */
+  }
 }
 function persist(){ localStorage.setItem(LS.user,JSON.stringify(S.user)); localStorage.setItem(LS.settings,JSON.stringify(S.settings)); }
 function renderApiScreen(err){
@@ -427,10 +441,10 @@ function renderWizard(){
       +'<div class="fline">'+g('wfixed','Default fixed charge per member','0')+g('wclose','Month closing day (1–28)','1')+'</div></form>';
     if(st===3) w.innerHTML='<div class="switch">Send email notifications (bills, receipts)<div class="sw on" data-k="email"></div></div>'
       +'<p class="sm mut" style="margin:10px 0">Automation can be enabled later in Settings — it uses Apps Script time triggers.</p>';
-    if(st===4) w.innerHTML='<p class="sm" style="margin-bottom:10px">Optional. The app works perfectly without it (it falls back to WhatsApp share links). Any provider that accepts a JSON POST works.</p>'
-      +'<div class="field"><div class="lbl" style="margin-bottom:5px">Provider</div><select id="wprov"><option value="none">Not now</option><option value="generic">Generic JSON API</option></select></div>'
-      +g('wurl','API URL','https://your-provider/api/send')+g('wkey','API key / token','','','password')
-      +'<div class="fline">'+g('wsender','Sender number','')+g('wcc','Country code','880')+'</div>';
+    if(st===4) w.innerHTML='<p class="sm" style="margin-bottom:10px">Optional. The app works perfectly without it (it falls back to WhatsApp share links). You can configure it later in Settings > WhatsApp.</p>'
+      +'<div class="field"><div class="lbl" style="margin-bottom:5px">Provider</div><select id="wprov"><option value="none">Not now</option><option value="cloud">Meta / WhatsApp Cloud API</option><option value="generic">Generic JSON API</option></select></div>'
+      +g('wurl','API URL','https://graph.facebook.com/v22.0/ID.../messages')+g('wkey','API key / token','','','password')
+      +'<div class="fline">'+g('wsender','Sender number (optional)','')+g('wcc','Country code','880')+'</div>';
     if(st===5) w.innerHTML='<div class="rowline" style="cursor:default"><div class="grow"><b>'+h(W.mess.name||'Your mess')+'</b><div class="sm mut">Admin: '+h(W.admin.email||'')+'</div></div></div>'
       +'<p class="sm mut" style="line-height:1.6">Setup creates the database structure, your admin account and default settings. You can load demo data afterwards to explore.</p>';
     $$('#wstep .sw').forEach(s=>s.onclick=()=>s.classList.toggle('on'));
@@ -506,6 +520,8 @@ function startApp(){
   $('#umOut').onclick=()=>doLogout(true);
   $('#umPw').onclick=changePwModal;
   $('#dot').className=S.online?'':'off'; $('#ob').hidden=S.online; updateSyncBadge();
+  if(APP_READY_){ renderRoute(); return; }
+  APP_READY_=true;
   if(!location.hash) location.hash='#/dashboard';
   addEventListener('hashchange',renderRoute);
   renderRoute(); flushQueue();
@@ -1076,7 +1092,7 @@ async function viewSettings(){
   S.settings={...S.settings,...gs.settings}; S.waConfigured=!!gs.waConfigured; persist();
   const s=S.settings;
   let tab='mess';
-  $('#view').innerHTML='<div class="page-head"><h3>Settings</h3><span class="sm mut">'+(S.waConfigured?'WhatsApp API active':'WhatsApp API not set — using share-link fallback')+'</span></div>'
+  $('#view').innerHTML='<div class="page-head"><h3>Settings</h3><span class="sm mut" id="waStatus">'+(S.waConfigured?'WhatsApp API active':'WhatsApp API not set — using share-link fallback')+'</span></div>'
    +'<div class="tabs">'+[['mess','Mess'],['acct','Accounting'],['notif','Notifications'],['email','Email'],['wa','WhatsApp'],['pwa','PWA'],['backup','Backup'],['system','System']].map(t=>'<div class="tab" data-t="'+t[0]+'">'+t[1]+'</div>').join('')+'</div><div id="sbody"></div>';
   const G=(id,lbl,val,ph,type)=>'<div class="field"><div class="lbl" style="margin-bottom:5px">'+lbl+'</div><input id="'+id+'" type="'+(type||'text')+'" placeholder="'+h(ph||'')+'" value="'+h(val==null?'':val)+'"></div>';
   const swtch=(k,lbl,on)=>'<div class="switch">'+lbl+'<div class="sw'+(on?' on':'')+'" data-k="'+k+'"></div></div>';
@@ -1110,10 +1126,10 @@ async function viewSettings(){
      +'<div class="field"><div class="lbl">Meal reminder</div><textarea id="s_meal">'+h(s.TPL_MEAL)+'</textarea></div>'
      +'<button class="btn btn-p" id="sv">Save</button> <button class="btn" id="stest">Send test email to me</button></div>';
     if(tab==='wa') b.innerHTML='<div class="card">'
-          +'<div class="field"><div class="lbl">Provider</div><select id="w_prov"><option value="none"'+(s.WA_PROVIDER==='none'?' selected':'')+'>Disabled (share-link fallback)</option><option value="cloud"'+(s.WA_PROVIDER==='cloud'?' selected':'')+'>Meta / WhatsApp Cloud API</option><option value="generic"'+(s.WA_PROVIDER==='generic'?' selected':'')+'>Generic JSON API</option></select></div>'
-     +G('w_url','API URL',s.WA_API_URL)+G('w_sender','Sender number',s.WA_SENDER)+G('w_cc','Country code',s.WA_COUNTRY_CODE)
+     +'<div class="field"><div class="lbl">Provider</div><select id="w_prov"><option value="none"'+(s.WA_PROVIDER==='none'||!s.WA_PROVIDER?' selected':'')+'>Disabled (share-link fallback)</option><option value="cloud"'+(s.WA_PROVIDER==='cloud'?' selected':'')+'>Meta / WhatsApp Cloud API</option><option value="generic"'+(s.WA_PROVIDER==='generic'?' selected':'')+'>Generic JSON API</option></select></div>'
+     +G('w_url','API URL',s.WA_API_URL)+G('w_sender','Sender number (not needed for Cloud API)',s.WA_SENDER)+G('w_cc','Country code',s.WA_COUNTRY_CODE)
      +'<div class="field"><div class="lbl">API key '+(s.WA_API_KEY_SET?'<span class="badge ok">configured</span>':'')+'</div><input id="w_key" type="password" placeholder="'+(s.WA_API_KEY_SET?'leave blank to keep current key':'paste key here')+'"></div>'
-     +'<p class="sm mut" style="margin:8px 0;line-height:1.5">The key is stored only inside Apps Script and never sent to the browser. Expected request: POST to the URL with header "Authorization: Bearer KEY" and body {"from","to","type":"text","text"}. If your provider uses a different format, adapt the single function sendWhatsAppMessage_ in WhatsAppService.gs.</p>'
+     +'<p class="sm mut" style="margin:8px 0;line-height:1.6">For Meta Cloud API — API URL: https://graph.facebook.com/v22.0/PHONE-NUMBER-ID/messages (the PHONE-NUMBER-ID is the long number from the Meta dashboard, not your phone number). API key: a permanent access token (Meta Business Settings &gt; System users &gt; whatsapp_business_messaging &gt; Generate token). The key is stored only inside Apps Script and never reaches the browser. Saving here turns WhatsApp on automatically. Cloud API can only reply to people who messaged your number within the last 24 hours.</p>'
      +G('w_to','Test phone number','','017XXXXXXXX')
      +'<button class="btn btn-p" id="svwa">Save</button> <button class="btn" id="wtest">Send test message</button></div>';
     if(tab==='pwa') b.innerHTML='<div class="card">'+G('s_app','App name (titles, PDFs)',s.APP_NAME)+G('s_short','Short name',s.APP_SHORT_NAME)
@@ -1145,8 +1161,10 @@ async function viewSettings(){
     const svwa=$('#sbody #svwa'); if(svwa) svwa.onclick=()=>withGuard(svwa,async()=>{
       const wa={provider:$('#w_prov').value,url:$('#w_url').value,sender:$('#w_sender').value};
       if($('#w_key').value) wa.apiKey=$('#w_key').value;
-      const r=await api('settings.update',{settings:{WA_COUNTRY_CODE:$('#w_cc').value},wa:wa});
+      var enable=$('#w_prov').value!=='none' && $('#w_url').value && ($('#w_key').value||s.WA_API_KEY_SET);
+      const r=await api('settings.update',{settings:{WA_COUNTRY_CODE:$('#w_cc').value,WHATSAPP_ENABLED:enable?'true':'false'},wa:wa});
       S.settings={...S.settings,...r.data.settings}; S.waConfigured=!!r.data.waConfigured; persist(); toast(r.message);
+      const st2=$('#waStatus'); if(st2) st2.textContent=S.waConfigured?'WhatsApp API active':'WhatsApp API not set — using share-link fallback';
     });
     const wtest=$('#sbody #wtest'); if(wtest) wtest.onclick=async()=>{
       try{ const r=await api('whatsapp.test',{to:val('w_to')}); toast(r.message); }catch(e){ toast(e.msg,'err'); } };
